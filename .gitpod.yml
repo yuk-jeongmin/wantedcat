@@ -1,0 +1,8 @@
+# .gitpod.yml
+tasks:
+  - name: Install Java 21 & Set as Default
+    init: |
+      sdk install java 21.0.2-tem
+    command: |
+      echo "Java 21 is now installed."
+      java -version
