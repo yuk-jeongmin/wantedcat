@@ -1,6 +1,3 @@
-# sensor/Dockerfile
-
-# Python 3.9 버전을 기반으로 이미지를 만듭니다.
 FROM python:3.11
 
 # 작업 디렉토리를 /app으로 설정합니다.
