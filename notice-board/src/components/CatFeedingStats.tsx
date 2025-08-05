@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
@@ -7,34 +6,37 @@ import { Droplets, Coffee, Target, TrendingUp } from "lucide-react";
 import type { Cat } from "./CatManagement";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
+// ✅ [반영] Props 인터페이스에 선택된 고양이 상태와 핸들러 추가
 interface CatFeedingStatsProps {
   cats: Cat[];
   onGoToCatManagement: () => void;
+  selectedCats: number[];
+  onCatSelectionChange: (ids: number[]) => void;
 }
 
-export function CatFeedingStats({ cats, onGoToCatManagement }: CatFeedingStatsProps) {
-  const [selectedCats, setSelectedCats] = useState<number[]>([]);
+export function CatFeedingStats({ 
+  cats, 
+  onGoToCatManagement,
+  selectedCats, 
+  onCatSelectionChange 
+}: CatFeedingStatsProps) {
 
   const toggleCatSelection = (catId: number) => {
-    setSelectedCats(prev => 
-      prev.includes(catId) 
-        ? prev.filter(id => id !== catId)
-        : [...prev, catId]
-    );
+    const newSelection = selectedCats.includes(catId)
+      ? selectedCats.filter(id => id !== catId)
+      : [...selectedCats, catId];
+    // ✅ [반영] 부모(App.tsx)로부터 받은 핸들러를 호출하여 상태를 업데이트
+    onCatSelectionChange(newSelection);
   };
 
   const selectedCatData = cats.filter(cat => selectedCats.includes(cat.id));
 
-  // 차트 데이터 준비
   const chartData = selectedCatData.map(cat => ({
     name: cat.name,
     음수량: cat.dailyWaterIntake || 0,
-    목표음수량: cat.targetWaterIntake || 0,
     식사량: cat.dailyFoodIntake || 0,
-    목표식사량: cat.targetFoodIntake || 0,
   }));
 
-  // 전체 평균 계산
   const avgWaterIntake = cats.length > 0 
     ? Math.round(cats.reduce((sum, cat) => sum + (cat.dailyWaterIntake || 0), 0) / cats.length)
     : 0;
@@ -73,7 +75,6 @@ export function CatFeedingStats({ cats, onGoToCatManagement }: CatFeedingStatsPr
       </CardHeader>
       
       <CardContent className="space-y-6">
-        {/* 요약 통계 */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-blue-50 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
@@ -91,7 +92,6 @@ export function CatFeedingStats({ cats, onGoToCatManagement }: CatFeedingStatsPr
           </div>
         </div>
 
-        {/* 고양이 선택 버튼들 */}
         <div>
           <h3 className="text-sm font-medium mb-3">모니터링할 고양이 선택</h3>
           <div className="flex flex-wrap gap-2">
@@ -101,11 +101,7 @@ export function CatFeedingStats({ cats, onGoToCatManagement }: CatFeedingStatsPr
                 variant={selectedCats.includes(cat.id) ? "default" : "outline"}
                 size="sm"
                 onClick={() => toggleCatSelection(cat.id)}
-                className={`flex items-center gap-2 ${
-                  selectedCats.includes(cat.id) 
-                    ? "bg-primary text-primary-foreground" 
-                    : "hover:bg-gray-50"
-                }`}
+                className="flex items-center gap-2"
               >
                 <div className="w-5 h-5 rounded-full overflow-hidden bg-gray-200">
                   <ImageWithFallback
@@ -120,18 +116,16 @@ export function CatFeedingStats({ cats, onGoToCatManagement }: CatFeedingStatsPr
           </div>
         </div>
 
-        {/* 선택된 고양이들의 그래프 */}
         {selectedCats.length > 0 ? (
           <div className="space-y-6">
-            {/* 가로바 차트 */}
+            {/* ✅ [반영] 세로 막대그래프로 복구 */}
             <div>
               <h3 className="text-sm font-medium mb-3">비교 차트</h3>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={chartData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                    barCategoryGap="20%"
+                    margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis 
@@ -150,20 +144,19 @@ export function CatFeedingStats({ cats, onGoToCatManagement }: CatFeedingStatsPr
                       dataKey="음수량" 
                       fill="#3b82f6" 
                       name="음수량 (ml)"
-                      radius={[2, 2, 0, 0]}
+                      radius={[4, 4, 0, 0]}
                     />
                     <Bar 
                       dataKey="식사량" 
                       fill="#f97316" 
                       name="식사량 (g)"
-                      radius={[2, 2, 0, 0]}
+                      radius={[4, 4, 0, 0]}
                     />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            {/* 개별 고양이 상세 정보 */}
             <div>
               <h3 className="text-sm font-medium mb-3">개별 상세 정보</h3>
               <div className="space-y-4">
@@ -184,7 +177,6 @@ export function CatFeedingStats({ cats, onGoToCatManagement }: CatFeedingStatsPr
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
-                      {/* 음수량 */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-1">
@@ -195,16 +187,16 @@ export function CatFeedingStats({ cats, onGoToCatManagement }: CatFeedingStatsPr
                             {cat.dailyWaterIntake}ml / {cat.targetWaterIntake}ml
                           </span>
                         </div>
+                        {/* ✅ [반영] Progress 바 스타일 복구 */}
                         <Progress 
                           value={getWaterPercentage(cat)} 
-                          className="h-2"
+                          className="h-2 bg-slate-200 [&>div]:bg-blue-500"
                         />
-                        <div className="text-xs text-muted-foreground mt-1">
+                        <div className="text-xs text-muted-foreground mt-1 text-right">
                           {getWaterPercentage(cat).toFixed(0)}% 달성
                         </div>
                       </div>
 
-                      {/* 식사량 */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-1">
@@ -215,11 +207,12 @@ export function CatFeedingStats({ cats, onGoToCatManagement }: CatFeedingStatsPr
                             {cat.dailyFoodIntake}g / {cat.targetFoodIntake}g
                           </span>
                         </div>
+                        {/* ✅ [반영] Progress 바 스타일 복구 */}
                         <Progress 
                           value={getFoodPercentage(cat)} 
-                          className="h-2"
+                          className="h-2 bg-slate-200 [&>div]:bg-orange-500"
                         />
-                        <div className="text-xs text-muted-foreground mt-1">
+                        <div className="text-xs text-muted-foreground mt-1 text-right">
                           {getFoodPercentage(cat).toFixed(0)}% 달성
                         </div>
                       </div>
