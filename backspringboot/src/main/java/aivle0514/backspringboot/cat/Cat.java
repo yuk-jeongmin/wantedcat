@@ -28,6 +28,6 @@ public class User {
     public User(String username, String password) {
         this.username = username;
         this.password = password;
-        this.streamKey = UUID.randomUUID().toString(); // ✨ 객체 생성 시 고유한 스트림 키 자동 생성
+        this.streamKey = UUID.randomUUID().toString();
     }
 }

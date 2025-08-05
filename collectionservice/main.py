@@ -71,3 +71,24 @@ async def receive_event_data(
 @app.get("/api/events/{user_id}", dependencies=[Depends(get_api_key)])
 def list_events_by_user(user_id: str, db: Session = Depends(get_db)):
     return crud.get_events_by_user(db, user_id)
+
+@app.post("/api/internal/auth/stream")
+def authenticate_stream(auth_request: schemas.StreamAuthRequest, db: Session = Depends(get_db)):
+    # MediaMTX는 경로 맨 앞에 '/'를 붙여서 보내므로, 이를 제거합니다.
+    stream_key = auth_request.path.lstrip('/')
+    
+    print(f"스트림 인증 요청 수신: 키='{stream_key}', 동작='{auth_request.action}'")
+
+    # 방송 시작(publish) 요청일 때만 인증을 수행합니다.
+    if auth_request.action == "publish":
+        user = crud.get_user_by_stream_key(db, stream_key=stream_key)
+        
+        if user and user.is_active:
+            print(f"인증 성공: 사용자='{user.username}'")
+            return {"status": "success"} # 인증 성공 시 HTTP 200 OK 반환
+        else:
+            print("인증 실패: 유효하지 않은 스트림 키")
+            raise HTTPException(status_code=404, detail="Invalid stream key")
+    
+    # 시청(read) 요청 등은 별도 인증 없이 허용
+    return {"status": "success"}
