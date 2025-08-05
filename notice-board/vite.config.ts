@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import path from 'path'
 
 const isGitpod = !!process.env.GITPOD_WORKSPACE_URL;
 const gitpodHost = process.env.GITPOD_WORKSPACE_URL
@@ -30,5 +31,10 @@ export default defineConfig({
               port: 5173,
             },
           }),
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),  // ← 꼭 설정해야 '@/...' 경로가 동작합니다
+    },
   },
 });
