@@ -23,3 +23,26 @@ class Event(EventCreate):
 
     class Config:
         orm_mode = True # SQLAlchemy 모델과 호환되도록 설정
+        
+# --- User 관련 스키마 ---
+class UserBase(BaseModel):
+    username: str
+
+class UserCreate(UserBase):
+    password: str
+
+class User(UserBase):
+    id: int
+    is_active: bool
+    stream_key: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+# --- 스트리밍 서버 인증용 스키마 ---
+class StreamAuthRequest(BaseModel):
+    stream_key: str
+
+# --- 재생 URL 응답용 스키마 ---
+class PlaybackResponse(BaseModel):
+    playback_url: str

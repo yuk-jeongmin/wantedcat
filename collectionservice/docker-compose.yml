@@ -1,14 +1,11 @@
-# sensor/docker-compose.yml
-
 services:
-  sensor:
-    # 현재 폴더(sensor)에 있는 Dockerfile을 사용하여 이미지를 빌드합니다.
+  collection:
     build: .
-    container_name: sensor_server
+    container_name: backend
     restart: always
     ports:
       # Python 코드가 5000번 포트를 사용하므로, 5000번 포트를 열어줍니다.
-      - "5000:5000"
+      - "8000:8000"
     
     # Python 코드에서 사용할 환경 변수를 설정합니다.
     environment:

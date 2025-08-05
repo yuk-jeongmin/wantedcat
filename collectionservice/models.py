@@ -10,3 +10,11 @@ class Event(Base): #Pydantic 모델 구
     duration_seconds = Column(Float)
     weight_info = Column(String(255))
     video_url = Column(String(255))
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(255), unique=True, index=True)
+    hashed_password = Column(String(255))
+    is_active = Column(Boolean, default=True)
+    stream_key = Column(String(255), unique=True, index=True, nullable=True)
