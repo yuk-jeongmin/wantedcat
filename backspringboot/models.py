@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime
-from .database import Base
+from database import Base
 
 class Event(Base): #Pydantic 모델 구
     __tablename__ = "events"

@@ -1,5 +1,9 @@
 import os
 from datetime import datetime, timedelta
+import crud
+import models
+import schemas
+from database import SessionLocal, engine, get_db
 
 from azure.storage.blob import (BlobSasPermissions, BlobServiceClient,
                                   generate_blob_sas)
@@ -7,10 +11,6 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.security.api_key import APIKeyHeader
 from sqlalchemy.orm import Session
-
-# --- 모듈화된 파일들 임포트 ---
-from . import crud, models, schemas
-from .database import SessionLocal, engine, get_db
 
 # --- 초기 설정 ---
 load_dotenv()
@@ -54,7 +54,6 @@ async def generate_sas_url(request: schemas.SasRequest):
 
     return schemas.SasResponse(sasUrl=sas_url, blobUrl=blob_url)
 
-# --- 수정된 /api/events 엔드포인트 ---
 @app.post("/api/events", dependencies=[Depends(get_api_key)])
 async def receive_event_data(
     event: schemas.EventCreate, # 수정된 Pydantic 모델 사용
@@ -68,3 +67,7 @@ async def receive_event_data(
     print("Successfully saved to DB:", created_event.__dict__)
     
     return {"status": "success", "message": "Event data received and saved."}
+
+@app.get("/api/events/{user_id}", dependencies=[Depends(get_api_key)])
+def list_events_by_user(user_id: str, db: Session = Depends(get_db)):
+    return crud.get_events_by_user(db, user_id)

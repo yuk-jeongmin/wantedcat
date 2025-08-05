@@ -3,3 +3,5 @@ uvicorn
 azure-storage-blob>=12.13.0
 pydantic
 python-dotenv
+sqlalchemy
+pymysql
