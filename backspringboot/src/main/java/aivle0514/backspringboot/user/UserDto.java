@@ -10,6 +10,23 @@ public class UserDto {
     public static class RegisterRequest {
         private String username;
         private String password;
+        private String email;
+    }
+
+    @Getter
+    @Setter
+    public static class LoginRequest {
+        private String email;
+        private String password;
+    }
+
+    @Getter
+    public static class LoginResponse {
+        private String message;
+
+        public LoginResponse(String message) {
+            this.message = message;
+        }
     }
 
     @Getter

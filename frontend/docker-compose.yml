@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # --- 프론트엔드 서비스 ---
+  frontend:
+    # 서비스 이름을 'frontend'로 지정합니다.
+    container_name: frontend_container
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    restart: always
+    ports:
+      # 로컬 PC의 5174 포트와 컨테이너의 5174 포트를 연결합니다.
+      - "5174:5174"
+    volumes:
+      # 현재 내 PC의 프로젝트 폴더 전체를 컨테이너의 /app 폴더와 동기화합니다.
+      - .:/app
+      # node_modules는 동기화에서 제외하여 성능 저하를 방지합니다.
+      - /app/node_modules
+    # ✅ [수정] 백엔드와 동일한 공유 네트워크를 사용하도록 설정합니다.
+    networks:
+      - my-shared-network
+
+networks:
+  my-shared-network:
+    external: true
