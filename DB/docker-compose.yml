@@ -1,0 +1,27 @@
+services:
+  db:
+    image: mysql:8.0
+
+    restart: always
+
+    container_name: mysql_db_container
+
+    environment:
+      MYSQL_ROOT_PASSWORD: 'asdf' # 루트 계정 비밀번호
+      MYSQL_DATABASE: 'my_app_db' # 시작 시 생성할 데이터베이스 이름
+
+    ports:
+      - "3306:3306"
+
+    volumes:
+      - ./db_init:/docker-entrypoint-initdb.d
+      - mysql-data:/var/lib/mysql
+    networks:
+      - my-shared-network
+
+volumes:
+  mysql-data:
+
+networks:
+  my-shared-network:
+    external: true
