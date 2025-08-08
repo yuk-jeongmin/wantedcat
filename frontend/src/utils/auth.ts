@@ -35,7 +35,7 @@ export const handleLogin = async (email: string, password: string): Promise<User
 
 export const handleSignup = async (userData: {
   email: string;
-  username: string; // 백엔드의 'username'에 해당
+  username: string; 
   password: string;
 }): Promise<boolean> => {
   try {

@@ -9,7 +9,6 @@ class SasResponse(BaseModel):
     sasUrl: str
     blobUrl: str
 
-# EventData를 EventCreate로 이름을 변경하고 user_id 추가
 class EventCreate(BaseModel):
     user_id: str
     event_time: datetime
@@ -17,7 +16,6 @@ class EventCreate(BaseModel):
     weight_info: str
     video_url: str
 
-# DB에서 읽어올 때 사용할 모델 (선택 사항이지만 좋은 습관)
 class Event(EventCreate):
     id: int
 

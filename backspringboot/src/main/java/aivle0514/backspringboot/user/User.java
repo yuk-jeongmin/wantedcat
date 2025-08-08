@@ -1,5 +1,7 @@
 package aivle0514.backspringboot.user;
+
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,8 +9,8 @@ import java.util.UUID;
 
 @Entity
 @Getter
-@NoArgsConstructor
-@Table(name = "users") // 데이터베이스에 'users'라는 이름의 테이블로 생성
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "users")
 public class User {
 
     @Id
@@ -16,22 +18,26 @@ public class User {
     private Long id;
 
     @Column(unique = true, nullable = false)
-    private String username; // 사용자 ID (이메일 형식 등)
+    private String username;
 
     @Column(nullable = false)
-    private String password; // 비밀번호 (반드시 암호화하여 저장해야 함)
+    private String password;
 
     @Column(unique = true, nullable = false)
-    private String email; // 사용자 ID (이메일 형식 등)
+    private String email;
 
     @Column(nullable = false)
-    private String joinDate; 
+    private String joinDate;
 
     @Column(nullable = false)
-    private String role; 
+    private String role;
 
     @Column(unique = true, nullable = false)
-    private String streamKey; // 개인별 스트림 키
+    private String streamKey;
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
     @Builder
     public User(String username, String password, String email) {
@@ -39,7 +45,7 @@ public class User {
         this.password = password;
         this.email = email;
         this.joinDate = java.time.OffsetDateTime.now().toString();
-        this.role = "user";
-        this.streamKey = UUID.randomUUID().toString(); // ✨ 객체 생성 시 고유한 스트림 키 자동 생성
+        this.role = "user"; // 기본 역할 'user'로 설정
+        this.streamKey = UUID.randomUUID().toString();
     }
 }
