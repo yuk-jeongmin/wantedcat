@@ -1,6 +1,5 @@
 services:
-  # 서비스 이름을 spring-backend로 지정합니다.
-  spring-backend:
+  backspringboot:
     # 현재 디렉터리의 Dockerfile을 사용하여 이미지를 빌드합니다.
     build: .
     container_name: spring_backend_container

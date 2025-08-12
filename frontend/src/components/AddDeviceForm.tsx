@@ -19,9 +19,6 @@ import {
   Search, 
   Loader2,
   Camera,
-  Coffee,
-  Droplets,
-  MapPin,
   Activity,
   CheckCircle
 } from "lucide-react";
@@ -35,9 +32,6 @@ interface AddDeviceFormProps {
 
 const deviceTypes = [
   { value: 'camera', label: '카메라', icon: Camera },
-  { value: 'feeder', label: '급식기', icon: Coffee },
-  { value: 'water-dispenser', label: '물통', icon: Droplets },
-  { value: 'tracker', label: 'GPS 트래커', icon: MapPin },
   { value: 'sensor', label: '센서', icon: Activity },
 ];
 
@@ -58,7 +52,6 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
     wifiName: editingDevice?.wifiName || '',
     wifiPassword: '',
     location: editingDevice?.location || '',
-    macAddress: editingDevice?.macAddress || ''
   });
 
   const [bluetoothDevices, setBluetoothDevices] = useState<BluetoothDevice[]>([]);
@@ -119,11 +112,8 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
     const deviceData: Omit<Device, 'id' | 'lastConnected'> = {
       name: formData.name,
       type: formData.type as Device['type'],
-      status: 'online',
-      macAddress: formData.macAddress || `AA:BB:CC:DD:EE:${Math.floor(Math.random() * 99).toString().padStart(2, '0')}`,
       wifiName: formData.wifiName || undefined,
       location: formData.location || undefined,
-      batteryLevel: ['tracker', 'sensor'].includes(formData.type) ? Math.floor(Math.random() * 40) + 60 : undefined
     };
 
     onSubmit(deviceData);
@@ -192,16 +182,6 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
                   value={formData.location}
                   onChange={(e) => handleInputChange('location', e.target.value)}
                   placeholder="예: 거실, 주방, 침실"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="mac-address">MAC 주소</Label>
-                <Input
-                  id="mac-address"
-                  value={formData.macAddress}
-                  onChange={(e) => handleInputChange('macAddress', e.target.value)}
-                  placeholder="AA:BB:CC:DD:EE:FF"
                 />
               </div>
             </TabsContent>

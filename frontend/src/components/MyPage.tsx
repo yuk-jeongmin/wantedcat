@@ -104,14 +104,6 @@ export function MyPage({ user }: MyPageProps) {
     }
   };
 
-  const getStatusText = (status: Device['status']) => {
-    switch (status) {
-      case 'online': return '온라인';
-      case 'offline': return '오프라인';
-      case 'error': return '오류';
-      default: return '알 수 없음';
-    }
-  };
 
   const formatLastUpdate = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -347,12 +339,6 @@ export function MyPage({ user }: MyPageProps) {
                         <h4 className="font-medium text-sm">{device.name}</h4>
                         <p className="text-xs text-muted-foreground">{getDeviceTypeName(device.type)}</p>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className={`w-2 h-2 rounded-full ${getStatusColor(device.status)}`}></div>
-                      <span className="text-xs text-muted-foreground">
-                        {getStatusText(device.status)}
-                      </span>
                     </div>
                   </div>
 

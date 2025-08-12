@@ -2,9 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Calendar, CheckCircle, Droplets, UtensilsCrossed } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Play, Pause, Volume2, VolumeX, Maximize, Clock, Utensils } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import Hls from 'hls.js';
+
 
 interface TodoItem {
   id: number;
@@ -86,33 +88,6 @@ const mockActivities: CatActivityCam[] = [
   }
 ];
 
-// 오늘의 일정 (Schedule 컴포넌트와 동기화)
-const todaySchedule: TodoItem[] = [
-  {
-    id: 1,
-    title: "나비 아침 식사",
-    description: "건사료 30g + 습식사료",
-    time: "08:00",
-    completed: true,
-    category: "feeding"
-  },
-  {
-    id: 2,
-    title: "털볼이 약 복용",
-    description: "관절염 약 1정",
-    time: "12:00",
-    completed: false,
-    category: "health"
-  },
-  {
-    id: 3,
-    title: "김치 놀이 시간",
-    description: "낚싯대 장난감으로 15분간 놀아주기",
-    time: "19:00",
-    completed: false,
-    category: "play"
-  }
-];
 
 // 고양이 활동 로그 생성
 
@@ -127,6 +102,32 @@ const todaySchedule: TodoItem[] = [
     day: 'numeric',
     weekday: 'long'
   });
+const videoRef = useRef<HTMLVideoElement>(null);
+const streamUrl = '/hls/live/12aed4be-ef30-4896-875e-5fa59685645f/index.m3u8'
+//'https://5c0f21d5c1bd.ngrok-free.app/live/12aed4be-ef30-4896-875e-5fa59685645f/index.m3u8';
+
+useEffect(() => {
+    let hls: Hls | null = null;
+    const videoElement = videoRef.current;
+
+    if (videoElement) {
+      if (Hls.isSupported()) {
+        hls = new Hls();
+        hls.loadSource(streamUrl);
+        hls.attachMedia(videoElement);
+      } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+        videoElement.src = streamUrl;
+      }
+    }
+
+    // 컴포넌트가 사라질 때 HLS 인스턴스를 정리하여 메모리 누수를 방지합니다.
+    return () => {
+      if (hls) {
+        hls.destroy();
+      }
+    };
+  }, [streamUrl])
+
   
 const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -157,75 +158,78 @@ const formatTime = (timestamp: string) => {
               </CardTitle>
             </CardHeader>
       <CardContent className="space-y-6">
-        {/* Today's Schedule */}
         <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
-                {/* Mock video background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-                  <div className="text-center text-white">
-                    <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Play className="w-8 h-8" />
-                    </div>
-                    <p className="text-lg">고양이 홈캠</p>
-                    <p className="text-sm text-gray-300">실시간 스트리밍 중...</p>
-                  </div>
-                </div>
+  {/* 실제 비디오: 기본 컨트롤(시간/진행바) 제거 */}
+  <video
+    ref={videoRef}
+    autoPlay
+    muted
+    playsInline
+    className="absolute inset-0 w-full h-full object-contain"
+  />
 
-                {/* Video overlay with cats */}
-                <ImageWithFallback
-                  src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&h=450&fit=crop"
-                  alt="Cat Live Stream"
-                  className="w-full h-full object-cover opacity-70"
-                />
+  {/* 커스텀 컨트롤: 시간/진행바 없음 */}
+  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-3">
+    <div className="flex items-center justify-between text-white">
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            const v = videoRef.current;
+            if (!v) return;
+            if (v.paused) { v.play().catch(() => {}); setIsPlaying(true); }
+            else { v.pause(); setIsPlaying(false); }
+          }}
+          className="text-white hover:bg-white/20"
+        >
+          {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+        </Button>
 
-                {/* Controls Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-4">
-                  <div className="flex items-center justify-between text-white">
-                    <div className="flex items-center gap-3">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsPlaying(!isPlaying)}
-                        className="text-white hover:bg-white/20"
-                      >
-                        {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsMuted(!isMuted)}
-                        className="text-white hover:bg-white/20"
-                      >
-                        {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                      </Button>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm">14:35:22</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-white hover:bg-white/20"
-                      >
-                        <Maximize className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            const v = videoRef.current;
+            if (!v) return;
+            v.muted = !v.muted;
+            setIsMuted(v.muted);
+          }}
+          className="text-white hover:bg-white/20"
+        >
+          {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+        </Button>
+      </div>
 
-        {/* Cat Activities */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => {
+          const v = videoRef.current;
+          if (!v) return;
+          if (v.requestFullscreen) v.requestFullscreen();
+        }}
+        className="text-white hover:bg-white/20"
+      >
+        <Maximize className="w-4 h-4" />
+      </Button>
+    </div>
+  </div>
+</div>
+        {/* 스트리밍 정보 (해상도 등) */}
         <div className="mt-4 grid grid-cols-3 gap-4 text-sm">
-                <div className="text-center">
-                  <div className="text-muted-foreground">해상도</div>
-                  <div className="font-medium">1080p</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-muted-foreground">FPS</div>
-                  <div className="font-medium">30</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-muted-foreground">연결 상태</div>
-                  <div className="font-medium text-green-600">안정</div>
-                </div>
+          <div className="text-center">
+            <div className="text-muted-foreground">해상도</div>
+            <div className="font-medium">1080p</div>
+          </div>
+          <div className="text-center">
+            <div className="text-muted-foreground">FPS</div>
+            <div className="font-medium">30</div>
+          </div>
+          <div className="text-center">
+            <div className="text-muted-foreground">연결 상태</div>
+            <div className="font-medium text-green-600">안정</div>
+          </div>
         </div>
         {/* Right - Activity Feed */}
                 <div className="lg:col-span-1">
