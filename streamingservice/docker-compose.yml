@@ -1,0 +1,16 @@
+services:
+  mediamtx_server:
+    image: bluenviron/mediamtx:latest
+    container_name: mediamtx_server
+    ports:
+      - "1935:1935"
+      - "8555:8555"   # HLS
+
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml:ro
+    networks:
+      - my-shared-network
+
+networks:
+  my-shared-network:
+    external: true

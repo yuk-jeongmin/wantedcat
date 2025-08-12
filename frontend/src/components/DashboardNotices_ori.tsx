@@ -86,33 +86,6 @@ const mockActivities: CatActivityCam[] = [
   }
 ];
 
-// 오늘의 일정 (Schedule 컴포넌트와 동기화)
-const todaySchedule: TodoItem[] = [
-  {
-    id: 1,
-    title: "나비 아침 식사",
-    description: "건사료 30g + 습식사료",
-    time: "08:00",
-    completed: true,
-    category: "feeding"
-  },
-  {
-    id: 2,
-    title: "털볼이 약 복용",
-    description: "관절염 약 1정",
-    time: "12:00",
-    completed: false,
-    category: "health"
-  },
-  {
-    id: 3,
-    title: "김치 놀이 시간",
-    description: "낚싯대 장난감으로 15분간 놀아주기",
-    time: "19:00",
-    completed: false,
-    category: "play"
-  }
-];
 
 // 고양이 활동 로그 생성
 
