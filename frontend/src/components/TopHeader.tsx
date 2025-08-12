@@ -6,7 +6,7 @@ export function TopHeader() {
     <div className="bg-white border-b border-border sticky top-0 z-50">
       <div className="px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h1 className="text-primary">챗밭바라기</h1>
+          <h1 className="text-primary">캣밥바라기</h1>
         </div>
         
         <div className="flex items-center gap-3">
@@ -21,7 +21,7 @@ export function TopHeader() {
             </AvatarFallback>
           </Avatar>
           <div className="text-right">
-            <div className="text-sm text-foreground">Alvie옹민4조</div>
+            <div className="text-sm text-foreground">Alvie0514</div>
             <div className="text-xs text-muted-foreground">s.ferguson@gmail.com</div>
           </div>
         </div>

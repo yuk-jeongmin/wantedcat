@@ -6,14 +6,6 @@ import { useState } from "react";
 import { Play, Pause, Volume2, VolumeX, Maximize, Clock, Utensils } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 
-interface TodoItem {
-  id: number;
-  title: string;
-  description?: string;
-  time?: string;
-  completed: boolean;
-  category: 'feeding' | 'health' | 'grooming' | 'play' | 'other';
-}
 
 interface CatActivity {
   id: number;

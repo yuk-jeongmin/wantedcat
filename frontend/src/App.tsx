@@ -570,7 +570,6 @@ export default function App() {
     const newDevice: Device = {
       ...deviceData,
       id: devices.length > 0 ? Math.max(...devices.map((d) => d.id)) + 1 : 1,
-      lastConnected: new Date().toISOString(),
     };
     setDevices((prev) => [newDevice, ...prev]);
     setShowAddDeviceForm(false);

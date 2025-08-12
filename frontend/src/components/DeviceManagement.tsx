@@ -80,11 +80,6 @@ export function DeviceManagement({ devices, onAddDevice, onEditDevice, onDeleteD
       return `${diffDays}일 전`;
     }
   };
-
-  const onlineDevices = devices.filter(d => d.status === 'online').length;
-  const offlineDevices = devices.filter(d => d.status === 'offline').length;
-  const errorDevices = devices.filter(d => d.status === 'error').length;
-
   return (
     <div className="flex-1 p-6">
       {/* Header */}
@@ -110,48 +105,6 @@ export function DeviceManagement({ devices, onAddDevice, onEditDevice, onDeleteD
               <div>
                 <p className="text-sm text-muted-foreground">전체 장치</p>
                 <p className="text-2xl text-primary">{devices.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                <Wifi className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">온라인</p>
-                <p className="text-2xl text-green-600">{onlineDevices}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                <WifiOff className="w-5 h-5 text-gray-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">오프라인</p>
-                <p className="text-2xl text-gray-600">{offlineDevices}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">오류</p>
-                <p className="text-2xl text-red-600">{errorDevices}</p>
               </div>
             </div>
           </CardContent>
@@ -195,7 +148,6 @@ export function DeviceManagement({ devices, onAddDevice, onEditDevice, onDeleteD
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${statusColors[device.status]}`} />
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm" className="p-1">
@@ -220,14 +172,7 @@ export function DeviceManagement({ devices, onAddDevice, onEditDevice, onDeleteD
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">상태</span>
-                      <Badge variant={device.status === 'online' ? 'default' : 'secondary'}>
-                        {statusLabels[device.status]}
-                      </Badge>
-                    </div>
-                    
+                  <div className="space-y-3">                  
                     {device.location && (
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">위치</span>
@@ -241,27 +186,6 @@ export function DeviceManagement({ devices, onAddDevice, onEditDevice, onDeleteD
                         <span className="text-sm">{device.wifiName}</span>
                       </div>
                     )}
-
-                    {device.batteryLevel !== undefined && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">배터리</span>
-                        <div className="flex items-center gap-1">
-                          <Battery className="w-4 h-4" />
-                          <span className="text-sm">{device.batteryLevel}%</span>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">마지막 연결</span>
-                      <span className="text-sm">{formatLastConnected(device.lastConnected)}</span>
-                    </div>
-
-                    <div className="pt-2 border-t">
-                      <div className="text-xs text-muted-foreground">
-                        MAC: {device.macAddress}
-                      </div>
-                    </div>
                   </div>
                 </CardContent>
               </Card>

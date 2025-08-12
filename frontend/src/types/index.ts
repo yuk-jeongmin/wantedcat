@@ -16,12 +16,8 @@ export interface UserData {
 export interface Device {
   id: number;
   name: string;
-  type: 'camera' | 'feeder' | 'water-dispenser' | 'tracker' | 'sensor';
-  status: 'online' | 'offline' | 'error';
-  macAddress: string;
-  lastConnected: string;
+  type: 'camera' | 'sensor';
   wifiName?: string;
-  batteryLevel?: number;
   location?: string;
 }
 
