@@ -4,6 +4,8 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+
 @CrossOrigin
 @RestController
 @RequiredArgsConstructor
@@ -17,22 +19,22 @@ public class UserController {
         userService.register(requestDto);
         return ResponseEntity.ok("회원가입 성공");
     }
-
-    @PostMapping("/login")
-    public ResponseEntity<UserDto.LoginResponse> login(@RequestBody UserDto.LoginRequest requestDto) {
-        String message = userService.login(requestDto);
-        return ResponseEntity.ok(new UserDto.LoginResponse(message));
-    }
-
-    @PostMapping("/find-email")
-    public ResponseEntity<UserFindDto.EmailFindResponse> findEmail(@RequestBody UserFindDto.EmailFindRequest requestDto) {
-        String email = userService.findEmailByUsername(requestDto.getUsername());
-        return ResponseEntity.ok(new UserFindDto.EmailFindResponse(email));
-    }
-
+    
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody UserFindDto.PasswordResetRequest requestDto) {
         userService.resetPassword(requestDto);
         return ResponseEntity.ok("비밀번호 재설정 성공");
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDto.UserResponse> getMyInfo(Authentication authentication) {
+        // 인증 객체에서 사용자 이메일을 가져옵니다.
+        String userEmail = authentication.getName();
+        
+        // 이메일을 사용해 사용자 정보를 조회하고 DTO로 변환합니다.
+        UserDto.UserResponse userInfo = userService.getUserInfoByEmail(userEmail);
+        
+        // 조회된 사용자 정보를 응답으로 보냅니다.
+        return ResponseEntity.ok(userInfo);
     }
 }

@@ -6,13 +6,6 @@ import lombok.Setter;
 
 public class UserFindDto {
 
-    // 이메일(아이디) 찾기 요청
-    @Getter
-    @Setter
-    public static class EmailFindRequest {
-        private String username; // 이름으로 이메일 검색
-    }
-
     // 이메일(아이디) 찾기 응답
     @Getter
     public static class EmailFindResponse {

@@ -15,7 +15,7 @@ export interface UserData {
 
 export interface Device {
   id: number;
-  name: string;
+  devicename: string;
   type: 'camera' | 'sensor';
   wifiName?: string;
   location?: string;

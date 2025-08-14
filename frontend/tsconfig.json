@@ -3,5 +3,9 @@
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }
-  ]
+  ],
+  "compilerOptions": {
+    // ... 다른 옵션들
+    "types": ["vite/client", "node", "web-bluetooth"] // "web-bluetooth" 추가
+  },
 }

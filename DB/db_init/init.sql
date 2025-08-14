@@ -11,13 +11,22 @@ CREATE TABLE IF NOT EXISTS events (
 );
 
 
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    join_date VARCHAR(255) NOT NULL,
+    role VARCHAR(255) NOT NULL,
+    stream_key VARCHAR(255) NOT NULL UNIQUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS devices (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id VARCHAR(255),
-    device_name VARCHAR(255),
-    duration_seconds FLOAT,
-    weight_info VARCHAR(255),
-    video_url VARCHAR(255)
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    devicename VARCHAR(255) NOT NULL,
+    type VARCHAR(255) NOT NULL,
+    wifi_name VARCHAR(255),
+    location VARCHAR(255),
+    user_id BIGINT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
-
