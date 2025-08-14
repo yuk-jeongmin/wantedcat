@@ -1,6 +1,6 @@
 package aivle0514.backspringboot.question;
 
-import aivle0514.backspringboot.question.dto.QuestionDto;
+import aivle0514.backspringboot.question.QuestionDto;
 import lombok.*;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
@@ -30,21 +30,17 @@ public class QuestionController {
     @PostMapping
     public QuestionDto.Response create(@Valid @RequestBody QuestionDto.CreateRequest req) {
         Question.Status st = req.getStatus()!=null ? Question.Status.valueOf(req.getStatus()) : null;
-        return QuestionDto.Response.from(
-            service.create(req.getTitle(), req.getContent(), req.getUserId(), req.getCategory(), st)
-        );
+        return QuestionDto.Response.from(service.create(req.getTitle(), req.getContent(), req.getAuthor(), req.getCategory(), st));
     }
 
     @PutMapping("/{id}")
     public QuestionDto.Response update(@PathVariable Long id, @Valid @RequestBody QuestionDto.UpdateRequest req) {
         Question.Status st = req.getStatus()!=null ? Question.Status.valueOf(req.getStatus()) : null;
-        return QuestionDto.Response.from(
-            service.update(id, req.getUserId(), req.getTitle(), req.getContent(), req.getCategory(), st)
-        );
+        return QuestionDto.Response.from(service.update(id, req.getAuthor(), req.getTitle(), req.getContent(), req.getCategory(), st));
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id, @RequestParam Long userId) {
-        service.delete(id, userId);
+    public void delete(@PathVariable Long id, @RequestParam String author) {
+        service.delete(id, author);
     }
 }

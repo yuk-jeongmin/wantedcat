@@ -1,12 +1,11 @@
 package aivle0514.backspringboot.question;
 
-import aivle0514.backspringboot.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter
+@Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "questions")
 public class Question {
@@ -22,15 +21,15 @@ public class Question {
     @Lob @Column(nullable = false)
     private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id") // FK: users.id
-    private User user;
+    /** 작성자 username 문자열 (FK 없음) */
+    @Column(name = "author", nullable = false, length = 255)
+    private String author;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @Column(nullable = false, length = 100)
-    private String category; // 예: 건강 문의
+    private String category;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -42,18 +41,17 @@ public class Question {
     @Column(name = "answers_count", nullable = false)
     private int answersCount;
 
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) createdAt = LocalDateTime.now();
+    }
+
     @Builder
-    public Question(String title,
-                    String content,
-                    User user,
-                    String category,
-                    Status status,
-                    Integer views,
-                    Integer answersCount,
-                    LocalDateTime createdAt) {
+    public Question(String title, String content, String author, String category,
+                    Status status, Integer views, Integer answersCount, LocalDateTime createdAt) {
         this.title = title;
         this.content = content;
-        this.user = user;
+        this.author = author;
         this.category = category;
         this.status = status != null ? status : Status.문의중;
         this.views = views != null ? views : 0;

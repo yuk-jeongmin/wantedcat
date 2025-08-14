@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS posts (
     CHECK (comments >= 0),
     INDEX idx_posts_created_at (created_at),
     INDEX idx_posts_category_created (category, created_at)
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    -- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS questions (
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS questions (
     CHECK (answers_count >= 0),
     INDEX idx_questions_created_at (created_at),
     INDEX idx_questions_status_created (status, created_at)
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    -- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS question_answers (
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS question_answers (
     CONSTRAINT fk_answers_question
         FOREIGN KEY (question_id) REFERENCES questions(id)
         ON DELETE CASCADE
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    -- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS notices (
@@ -91,5 +91,5 @@ CREATE TABLE IF NOT EXISTS notices (
     CHECK (is_pinned IN (0, 1)),
     INDEX idx_notices_pinned_created (is_pinned, created_at),
     INDEX idx_notices_priority_created (priority, created_at)
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    -- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

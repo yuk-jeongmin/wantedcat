@@ -11,14 +11,14 @@ public class QuestionDto {
     public static class CreateRequest {
         @NotBlank private String title;
         @NotBlank private String content;
-        @NotNull  private Long   userId;
+        @NotBlank private String author;   // 문자열
         @NotBlank private String category;
-                  private String status; // "문의중" | "답변대기" | "답변완료"
+                  private String status;   // "문의중" | "답변대기" | "답변완료"
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
     public static class UpdateRequest {
-        @NotNull  private Long   userId;
+        @NotBlank private String author;
                   private String title;
                   private String content;
                   private String category;
@@ -30,7 +30,7 @@ public class QuestionDto {
         private Long id;
         private String title;
         private String content;
-        private Long userId;
+        private String author;
         private String category;
         private String status;
         private int views;
@@ -42,7 +42,7 @@ public class QuestionDto {
                 .id(q.getId())
                 .title(q.getTitle())
                 .content(q.getContent())
-                .userId(q.getUser()!=null ? q.getUser().getId() : null)
+                .author(q.getAuthor())
                 .category(q.getCategory())
                 .status(q.getStatus()!=null ? q.getStatus().name() : null)
                 .views(q.getViews())

@@ -1,7 +1,5 @@
 package aivle0514.backspringboot.post;
 
-import aivle0514.backspringboot.user.User;
-import aivle0514.backspringboot.user.UserRepository;
 import lombok.*;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -13,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
 
     public Page<Post> list(int page, int size, String category, String q) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -27,12 +24,11 @@ public class PostService {
     }
 
     @Transactional
-    public Post create(String title, String content, Long userId, String category) {
-        User user = userRepository.findById(userId).orElseThrow();
+    public Post create(String title, String content, String author, String category) {
         Post p = new Post();
         p.setTitle(title);
         p.setContent(content);
-        p.setUser(user);
+        p.setAuthor(author);
         p.setCategory(category);
         p.setViews(0);
         p.setLikes(0);
@@ -41,17 +37,17 @@ public class PostService {
     }
 
     @Transactional
-    public Post update(Long id, Long userId, String title, String content, String category) {
-        Post p = postRepository.findByIdAndUser_Id(id, userId).orElseThrow(); // 소유자 검증
+    public Post update(Long id, String author, String title, String content, String category) {
+        Post p = postRepository.findByIdAndAuthor(id, author).orElseThrow(); // 작성자 검증
         if (title   != null) p.setTitle(title);
         if (content != null) p.setContent(content);
         if (category!= null) p.setCategory(category);
-        return p; // dirty checking으로 flush 시 자동 업데이트
+        return p;
     }
 
     @Transactional
-    public void delete(Long id, Long userId) {
-        Post p = postRepository.findByIdAndUser_Id(id, userId).orElseThrow();
+    public void delete(Long id, String author) {
+        Post p = postRepository.findByIdAndAuthor(id, author).orElseThrow();
         postRepository.delete(p);
     }
 }

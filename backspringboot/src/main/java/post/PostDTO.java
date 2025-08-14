@@ -11,13 +11,13 @@ public class PostDto {
     public static class CreateRequest {
         @NotBlank private String title;
         @NotBlank private String content;
-        @NotNull  private Long   userId;   // FK: users.id
+        @NotBlank private String author;   // 변경: userId -> author
         @NotBlank private String category;
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
     public static class UpdateRequest {
-        @NotNull  private Long   userId;   // 소유자 검증용
+        @NotBlank private String author;   // 작성자 검증용
                   private String title;
                   private String content;
                   private String category;
@@ -28,7 +28,7 @@ public class PostDto {
         private Long id;
         private String title;
         private String content;
-        private Long userId;
+        private String author;
         private String category;
         private int views;
         private int likes;
@@ -40,7 +40,7 @@ public class PostDto {
                 .id(p.getId())
                 .title(p.getTitle())
                 .content(p.getContent())
-                .userId(p.getUser()!=null ? p.getUser().getId() : null)
+                .author(p.getAuthor())
                 .category(p.getCategory())
                 .views(p.getViews())
                 .likes(p.getLikes())

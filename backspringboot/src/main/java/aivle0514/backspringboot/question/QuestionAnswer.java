@@ -1,4 +1,4 @@
-package aivle0514.backspringboot.post;
+package aivle0514.backspringboot.question;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -7,14 +7,16 @@ import java.time.LocalDateTime;
 @Entity
 @Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "posts")
-public class Post {
+@Table(name = "question_answers")
+public class QuestionAnswer {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 255)
-    private String title;
+    /** FK: questions.id (CASCADE ON DELETE) */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "question_id", nullable = false)
+    private Question question;
 
     @Lob @Column(nullable = false)
     private String content;
@@ -26,33 +28,16 @@ public class Post {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false, length = 100)
-    private String category;
-
-    @Column(nullable = false)
-    private int views;
-
-    @Column(nullable = false)
-    private int likes;
-
-    @Column(name = "comments", nullable = false)
-    private int comments;
-
     @PrePersist
     void onCreate() {
         if (createdAt == null) createdAt = LocalDateTime.now();
     }
 
     @Builder
-    public Post(String title, String content, String author, String category,
-                Integer views, Integer likes, Integer comments, LocalDateTime createdAt) {
-        this.title = title;
+    public QuestionAnswer(Question question, String content, String author, LocalDateTime createdAt) {
+        this.question = question;
         this.content = content;
         this.author = author;
-        this.category = category;
-        this.views = views != null ? views : 0;
-        this.likes = likes != null ? likes : 0;
-        this.comments = comments != null ? comments : 0;
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
     }
 }

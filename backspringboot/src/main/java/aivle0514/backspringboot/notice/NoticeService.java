@@ -1,7 +1,5 @@
 package aivle0514.backspringboot.notice;
 
-import aivle0514.backspringboot.user.User;
-import aivle0514.backspringboot.user.UserRepository;
 import lombok.*;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -13,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
-    private final UserRepository userRepository;
 
     public Page<Notice> list(int page, int size, String category) {
         Sort sort = Sort.by(Sort.Direction.DESC, "isPinned").and(Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -28,13 +25,12 @@ public class NoticeService {
     }
 
     @Transactional
-    public Notice create(String title, String content, Long userId, String category,
+    public Notice create(String title, String content, String author, String category,
                          Notice.Priority priority, Boolean isPinned) {
-        User user = userRepository.findById(userId).orElseThrow();
         Notice n = new Notice();
         n.setTitle(title);
         n.setContent(content);
-        n.setUser(user);
+        n.setAuthor(author);
         n.setCategory(category);
         n.setPriority(priority != null ? priority : Notice.Priority.일반);
         n.setPinned(isPinned != null && isPinned);
@@ -43,9 +39,9 @@ public class NoticeService {
     }
 
     @Transactional
-    public Notice update(Long id, Long userId, String title, String content,
+    public Notice update(Long id, String author, String title, String content,
                          String category, Notice.Priority priority, Boolean isPinned) {
-        Notice n = noticeRepository.findByIdAndUser_Id(id, userId).orElseThrow();
+        Notice n = noticeRepository.findByIdAndAuthor(id, author).orElseThrow();
         if (title   != null) n.setTitle(title);
         if (content != null) n.setContent(content);
         if (category!= null) n.setCategory(category);
@@ -55,8 +51,8 @@ public class NoticeService {
     }
 
     @Transactional
-    public void delete(Long id, Long userId) {
-        Notice n = noticeRepository.findByIdAndUser_Id(id, userId).orElseThrow();
+    public void delete(Long id, String author) {
+        Notice n = noticeRepository.findByIdAndAuthor(id, author).orElseThrow();
         noticeRepository.delete(n);
     }
 }

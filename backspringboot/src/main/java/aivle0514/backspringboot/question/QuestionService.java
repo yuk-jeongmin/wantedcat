@@ -1,7 +1,5 @@
 package aivle0514.backspringboot.question;
 
-import aivle0514.backspringboot.user.User;
-import aivle0514.backspringboot.user.UserRepository;
 import lombok.*;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -13,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class QuestionService {
 
     private final QuestionRepository questionRepository;
-    private final UserRepository userRepository;
 
     public Page<Question> list(int page, int size, String category, Question.Status status) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -29,13 +26,12 @@ public class QuestionService {
     }
 
     @Transactional
-    public Question create(String title, String content, Long userId,
+    public Question create(String title, String content, String author,
                            String category, Question.Status status) {
-        User user = userRepository.findById(userId).orElseThrow();
         Question q = new Question();
         q.setTitle(title);
         q.setContent(content);
-        q.setUser(user);
+        q.setAuthor(author);
         q.setCategory(category);
         q.setStatus(status != null ? status : Question.Status.문의중);
         q.setViews(0);
@@ -44,9 +40,9 @@ public class QuestionService {
     }
 
     @Transactional
-    public Question update(Long id, Long userId, String title, String content,
+    public Question update(Long id, String author, String title, String content,
                            String category, Question.Status status) {
-        Question q = questionRepository.findByIdAndUser_Id(id, userId).orElseThrow();
+        Question q = questionRepository.findByIdAndAuthor(id, author).orElseThrow();
         if (title   != null) q.setTitle(title);
         if (content != null) q.setContent(content);
         if (category!= null) q.setCategory(category);
@@ -55,8 +51,8 @@ public class QuestionService {
     }
 
     @Transactional
-    public void delete(Long id, Long userId) {
-        Question q = questionRepository.findByIdAndUser_Id(id, userId).orElseThrow();
+    public void delete(Long id, String author) {
+        Question q = questionRepository.findByIdAndAuthor(id, author).orElseThrow();
         questionRepository.delete(q);
     }
 }

@@ -1,6 +1,6 @@
 package aivle0514.backspringboot.post;
 
-import aivle0514.backspringboot.post.dto.PostDto;
+import aivle0514.backspringboot.post.PostDto;
 import lombok.*;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
@@ -28,20 +28,16 @@ public class PostController {
 
     @PostMapping
     public PostDto.Response create(@Valid @RequestBody PostDto.CreateRequest req) {
-        return PostDto.Response.from(
-            service.create(req.getTitle(), req.getContent(), req.getUserId(), req.getCategory())
-        );
+        return PostDto.Response.from(service.create(req.getTitle(), req.getContent(), req.getAuthor(), req.getCategory()));
     }
 
     @PutMapping("/{id}")
     public PostDto.Response update(@PathVariable Long id, @Valid @RequestBody PostDto.UpdateRequest req) {
-        return PostDto.Response.from(
-            service.update(id, req.getUserId(), req.getTitle(), req.getContent(), req.getCategory())
-        );
+        return PostDto.Response.from(service.update(id, req.getAuthor(), req.getTitle(), req.getContent(), req.getCategory()));
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id, @RequestParam Long userId) {
-        service.delete(id, userId);
+    public void delete(@PathVariable Long id, @RequestParam String author) {
+        service.delete(id, author);
     }
 }

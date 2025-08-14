@@ -1,6 +1,6 @@
 package aivle0514.backspringboot.notice;
 
-import aivle0514.backspringboot.notice.dto.NoticeDto;
+import aivle0514.backspringboot.notice.NoticeDto;
 import lombok.*;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
@@ -28,21 +28,17 @@ public class NoticeController {
     @PostMapping
     public NoticeDto.Response create(@Valid @RequestBody NoticeDto.CreateRequest req) {
         Notice.Priority pr = req.getPriority()!=null ? Notice.Priority.valueOf(req.getPriority()) : null;
-        return NoticeDto.Response.from(
-            service.create(req.getTitle(), req.getContent(), req.getUserId(), req.getCategory(), pr, req.getIsPinned())
-        );
+        return NoticeDto.Response.from(service.create(req.getTitle(), req.getContent(), req.getAuthor(), req.getCategory(), pr, req.getIsPinned()));
     }
 
     @PutMapping("/{id}")
     public NoticeDto.Response update(@PathVariable Long id, @Valid @RequestBody NoticeDto.UpdateRequest req) {
         Notice.Priority pr = req.getPriority()!=null ? Notice.Priority.valueOf(req.getPriority()) : null;
-        return NoticeDto.Response.from(
-            service.update(id, req.getUserId(), req.getTitle(), req.getContent(), req.getCategory(), pr, req.getIsPinned())
-        );
+        return NoticeDto.Response.from(service.update(id, req.getAuthor(), req.getTitle(), req.getContent(), req.getCategory(), pr, req.getIsPinned()));
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id, @RequestParam Long userId) {
-        service.delete(id, userId);
+    public void delete(@PathVariable Long id, @RequestParam String author) {
+        service.delete(id, author);
     }
 }
