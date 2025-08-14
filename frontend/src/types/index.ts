@@ -15,7 +15,7 @@ export interface UserData {
 
 export interface Device {
   id: number;
-  name: string;
+  devicename: string;
   type: 'camera' | 'sensor';
   wifiName?: string;
   location?: string;
@@ -23,7 +23,7 @@ export interface Device {
 
 export interface BluetoothDevice {
   id: string;
-  name: string;
+  blename: string;
   rssi: number;
   type: string;
   connected: boolean;

@@ -58,7 +58,6 @@ import type {
 } from "./types";
 import { mockUsers } from "./data/mockUsers";
 import { initialCats } from "./data/mockCats";
-import { initialDevices } from "./data/mockDevices";
 import { initialPosts } from "./data/mockPosts";
 import { initialQuestions } from "./data/mockQuestions";
 import { initialNotices } from "./data/mockNotices";
@@ -77,7 +76,7 @@ import {
   filterAndSortData,
   getCounts,
 } from "./utils/dataFilters";
-
+axios.defaults.withCredentials = true;
 const VITE_API_URL = import.meta.env.VITE_API_URL;
 
 // Sidebar 컴포넌트: 사이드 메뉴를 렌더링합니다.
@@ -346,7 +345,7 @@ const MainContent = ({
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [currentUser, setCurrentUser] = useState<UserData | null>(mockUsers[1]);
+  const [currentUser, setCurrentUser] = useState<UserData | null>(mockUsers[1]); //<- null
   const [authPage, setAuthPage] = useState<AuthPage>("login");
   const [currentMenu, setCurrentMenu] = useState<MenuType>("dashboard");
   const [currentManagement, setCurrentManagement] = useState<ManagementType>("cats");
@@ -362,7 +361,7 @@ export default function App() {
   const [cats, setCats] = useState<Cat[]>(initialCats);
   const [showAddCatForm, setShowAddCatForm] = useState(false);
   const [editingCat, setEditingCat] = useState<Cat | null>(null);
-  const [devices, setDevices] = useState<Device[]>(initialDevices);
+  const [devices, setDevices] = useState<Device[]>([]); // 초기값 빈 배열로 변경
   const [showAddDeviceForm, setShowAddDeviceForm] = useState(false);
   const [editingDevice, setEditingDevice] = useState<Device | null>(null);
   const [posts, setPosts] = useState<Post[]>(initialPosts);
@@ -386,10 +385,31 @@ export default function App() {
         setIsSidebarOpen(false);
       }
     };
+    
     window.addEventListener('resize', handleResize);
     handleResize(); // 초기 로드 시 실행
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+        // 사용자가 로그인된 상태일 때만 데이터를 가져옵니다.
+        if (isAuthenticated) {
+            const fetchDevices = async () => {
+                try {
+                    const response = await axios.get(`${VITE_API_URL}/api/devices`, {
+                        withCredentials: true,
+                    });
+                    if (response.status === 200) {
+                        setDevices(response.data);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch devices:", error);
+                }
+            };
+
+            fetchDevices();
+        }
+    }, [isAuthenticated]);
 
   const currentData = getCurrentData(currentBoard, posts, questions, notices);
   const currentCategories = getCurrentCategories(currentBoard, currentData);
@@ -402,21 +422,32 @@ export default function App() {
     return filterAndSortData(currentData, currentBoard, searchTerm, selectedCategory, selectedStatus, sortBy);
   }, [currentData, currentBoard, searchTerm, selectedCategory, selectedStatus, sortBy]);
 
-  const handleLoginAttempt = async (email: string, password: string): Promise<boolean> => {
+const handleLoginAttempt = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await axios.post(`${VITE_API_URL}/api/user/login`, { email, password });
-      const { user, token } = response.data;
-      setCurrentUser(user);
-      setIsAuthenticated(true);
-      localStorage.setItem('authToken', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      return true;
+      // Spring Security의 formLogin이 처리하도록 설정한 엔드포인트로 요청
+      const params = new URLSearchParams();
+        params.append('email', email);
+        params.append('password', password);
+        const response = await axios.post(`${VITE_API_URL}/api/user/login`, params);
+
+        if (response.status === 200) {
+            // 로그인 성공 후 '내 정보'를 가져오는 로직은 withCredentials 옵션이 필요할 수 있습니다.
+            // 세션 쿠키를 주고받기 위함입니다.
+            const userResponse = await axios.get(`${VITE_API_URL}/api/user/me`, {
+                withCredentials: true 
+            });
+            setCurrentUser(userResponse.data);
+            setIsAuthenticated(true);
+            return true;
+        }
+        return false;
+
     } catch (error) {
       console.error("Login failed:", error);
       alert("로그인에 실패했습니다. 아이디 또는 비밀번호를 확인해주세요.");
       return false;
     }
-  };
+};
 
   const handleSignupAttempt = async (userData: {
     email: string;
@@ -566,13 +597,24 @@ export default function App() {
     }
   };
 
-  const handleAddDevice = (deviceData: Omit<Device, "id" | "lastConnected">) => {
-    const newDevice: Device = {
-      ...deviceData,
-      id: devices.length > 0 ? Math.max(...devices.map((d) => d.id)) + 1 : 1,
-    };
-    setDevices((prev) => [newDevice, ...prev]);
-    setShowAddDeviceForm(false);
+  // [수정] 장치 추가 핸들러 (API 연동)
+  const handleAddDevice = async (deviceData: Omit<Device, "id">) => {
+    try {
+      // 백엔드 API에 장치 추가 요청
+      const response = await axios.post(`${VITE_API_URL}/api/devices`, deviceData, {
+        withCredentials: true, // 인증된 요청을 위해 쿠키 포함
+      });
+
+      if (response.status === 201) {
+        // 성공적으로 추가되면 서버로부터 받은 장치 정보를 상태에 추가
+        const newDevice = response.data;
+        setDevices((prev) => [newDevice, ...prev]);
+        setShowAddDeviceForm(false); // 폼 닫기
+      }
+    } catch (error) {
+      console.error("Failed to add device:", error);
+      alert("장치 추가에 실패했습니다.");
+    }
   };
 
   const handleEditDevice = (device: Device) => {
