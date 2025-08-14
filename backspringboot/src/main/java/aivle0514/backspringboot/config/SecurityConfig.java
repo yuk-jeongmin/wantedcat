@@ -70,7 +70,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("https://5174-sjleecatthe-wantedcat-7dxfzhg0f8g.ws-us121.gitpod.io"));
+        configuration.setAllowedOrigins(Arrays.asList("https://5174-ksyeoni-wantedcat-qqm6bw73rng.ws-us121.gitpod.io"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

@@ -14,10 +14,10 @@ export default defineConfig({
   server: {
     port: 5174,
     host: true, // Gitpod 환경에서 서버 접속을 위해 필요
-    allowedHosts: ['5174-sjleecatthe-wantedcat-7dxfzhg0f8g.ws-us121.gitpod.io'],
+    allowedHosts: ['5174-ksyeoni-wantedcat-qqm6bw73rng.ws-us121.gitpod.io'],
     proxy: {
       '/hls': {
-        target: 'https://8555-sjleecatthe-wantedcat-7dxfzhg0f8g.ws-us121.gitpod.io',   // MediaMTX HLS 원본(같은 호스트에서 8555)
+        target: 'https://8555-ksyeoni-wantedcat-qqm6bw73rng.ws-us121.gitpod.io',   // MediaMTX HLS 원본(같은 호스트에서 8555)
         changeOrigin: true,
         secure: false,
         rewrite: (path: string) => path.replace(/^\/hls/, ''), // /hls → /

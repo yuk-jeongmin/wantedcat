@@ -1,5 +1,5 @@
 import type { UserData } from '../types';
-const API_BASE_URL = 'https://8080-sjleecatthe-wantedcat-7dxfzhg0f8g.ws-us121.gitpod.io';
+const API_BASE_URL = 'https://8080-ksyeoni-wantedcat-qqm6bw73rng.ws-us121.gitpod.io';
 
 export const handleLogin = async (email: string, password: string): Promise<UserData | null> => {
   try {
