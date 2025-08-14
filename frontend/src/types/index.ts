@@ -9,7 +9,7 @@ export interface UserData {
   email: string;
   profileImage?: string;
   joinDate: string;
-  streamkey: string;
+  streamKey: string;
   role: 'user' | 'admin';
 }
 

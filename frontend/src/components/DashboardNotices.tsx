@@ -91,7 +91,7 @@ const mockActivities: CatActivityCam[] = [
 
 // 고양이 활동 로그 생성
 
-  export function DashboardNotices() {
+  export function DashboardNotices({ streamKey }: { streamKey: string | null | undefined }) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<CatActivityCam | null>(null);
@@ -103,7 +103,8 @@ const mockActivities: CatActivityCam[] = [
     weekday: 'long'
   });
 const videoRef = useRef<HTMLVideoElement>(null);
-const streamUrl = '/hls/live/12aed4be-ef30-4896-875e-5fa59685645f/index.m3u8'
+// const streamKey = sessionStorage.getItem('streamKey');
+const streamUrl = `/hls/live/${streamKey}/index.m3u8`;
 //'https://5c0f21d5c1bd.ngrok-free.app/live/12aed4be-ef30-4896-875e-5fa59685645f/index.m3u8';
 
 useEffect(() => {
@@ -126,7 +127,7 @@ useEffect(() => {
         hls.destroy();
       }
     };
-  }, [streamUrl])
+  }, [streamKey, streamUrl])
 
   
 const formatTime = (timestamp: string) => {

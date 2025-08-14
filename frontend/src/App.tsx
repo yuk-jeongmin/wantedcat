@@ -234,7 +234,7 @@ const MainContent = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
             {/* 대시보드 공지사항 */}
             <div>
-              <DashboardNotices />
+              <DashboardNotices streamKey={currentUser?.streamKey} />
             </div>
             {/* 고양이 식사량 통계 */}
             <div>
@@ -257,7 +257,11 @@ const MainContent = ({
         return <CatManagement cats={cats} onAddCat={() => setShowAddCatForm(true)} onEditCat={handleEditClick} onDeleteCat={handleDeleteCat} />;
       }
       if (currentManagement === "devices") {
-        return <DeviceManagement devices={devices} onAddDevice={() => setShowAddDeviceForm(true)} onEditDevice={setEditingDevice} onDeleteDevice={handleDeleteDevice} />;
+        return <DeviceManagement 
+        devices={devices}
+        onAddDevice={() => setShowAddDeviceForm(true)}
+        onEditDevice={handleEditClick} 
+        onDeleteDevice={handleDeleteDevice} />;
       }
       return null;
     }
@@ -617,22 +621,49 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
     }
   };
 
-  const handleEditDevice = (device: Device) => {
-    setEditingDevice(device);
-    setShowAddDeviceForm(true);
-  };
+  // const handleEditDevice = (device: Device) => {
+  //   setEditingDevice(device);
+  //   setShowAddDeviceForm(true);
+  // };
 
-  const handleUpdateDevice = (deviceData: Omit<Device, "id" | "lastConnected">) => {
+const handleUpdateDevice = async (deviceData: Omit<Device, "id" | "lastConnected">) => {
     if (editingDevice) {
-      setDevices((prev) => prev.map((device) => device.id === editingDevice.id ? { ...device, ...deviceData } : device));
-      setEditingDevice(null);
-      setShowAddDeviceForm(false);
+      try {
+        // 1. 백엔드에 수정 요청 (PUT)
+        const response = await axios.put(`${VITE_API_URL}/api/devices/${editingDevice.id}`, deviceData, {
+          withCredentials: true,
+        });
+
+        // 2. 성공 시, 응답받은 데이터로 화면(state) 업데이트
+        setDevices((prev) => 
+          prev.map((device) => 
+            device.id === editingDevice.id ? response.data : device
+          )
+        );
+        
+        setEditingDevice(null);
+        setShowAddDeviceForm(false);
+      } catch (error) {
+        console.error("Failed to update device:", error);
+        alert("장치 정보 수정에 실패했습니다.");
+      }
     }
   };
 
-  const handleDeleteDevice = (deviceId: number) => {
-    if (window.confirm("정말 삭제하시겠습니까?")) {
-      setDevices((prev) => prev.filter((device) => device.id !== deviceId));
+  const handleDeleteDevice = async (deviceId: number) => {
+    if (window.confirm("정말 이 장치를 삭제하시겠습니까?")) {
+      try {
+        // 1. 백엔드에 삭제 요청 (DELETE)
+        await axios.delete(`${VITE_API_URL}/api/devices/${deviceId}`, {
+          withCredentials: true,
+        });
+
+        // 2. 성공 시, 화면(state)에서 해당 장치 제거
+        setDevices((prev) => prev.filter((device) => device.id !== deviceId));
+      } catch (error) {
+        console.error("Failed to delete device:", error);
+        alert("장치 삭제에 실패했습니다.");
+      }
     }
   };
 
@@ -652,22 +683,39 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
     }
   };
 
-  const handleEditClick = (item: any) => {
+const handleEditClick = (item: any) => {
+  // 1) 관리 메뉴일 때 우선 처리
+  if (currentMenu === "management") {
+    if (currentManagement === "cats") {
+      handleEditCat(item);
+      return;
+    }
+    if (currentManagement === "devices") {
+      setEditingDevice(item);
+      setShowAddDeviceForm(true);
+      return;
+    }
+  }
+
+  // 2) 게시판 메뉴는 그 다음
+  if (currentMenu === "board") {
     if (currentBoard === "info") {
       setEditingPost(item);
       setShowCreateForm(true);
-    } else if (currentBoard === "qna") {
+      return;
+    }
+    if (currentBoard === "qna") {
       setEditingQuestion(item);
       setShowCreateForm(true);
-    } else if (currentBoard === "notice") {
+      return;
+    }
+    if (currentBoard === "notice") {
       setEditingNotice(item);
       setShowCreateForm(true);
-    } else if (currentManagement === "cats") {
-        handleEditCat(item);
-    } else if (currentManagement === "devices") {
-        handleEditDevice(item);
+      return;
     }
-  };
+  }
+};
 
   const handleBoardChange = (board: BoardType) => {
     setCurrentBoard(board);
@@ -827,7 +875,7 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
       
       {/* 고양이/장치 추가 및 수정 폼 */}
       {showAddCatForm && (<AddCatForm onClose={() => { setShowAddCatForm(false); setEditingCat(null); }} onSubmit={editingCat ? handleUpdateCat : handleAddCat} editingCat={editingCat} />)}
-      {showAddDeviceForm && (<AddDeviceForm onClose={() => { setShowAddDeviceForm(false); setEditingDevice(null); }} onSubmit={editingDevice ? handleUpdateDevice : handleAddDevice} editingDevice={editingDevice} />)}
+      {showAddDeviceForm && (<AddDeviceForm onClose={() => { setShowAddDeviceForm(false); setEditingDevice(null); }} onSubmit={editingDevice ? handleUpdateDevice : handleAddDevice} editingDevice={editingDevice} streamKey={currentUser?.streamKey}/>)}
       
       {/* --- 상세 보기 모달 --- */}
       {/* [수정 완료] PostDetail 컴포넌트에 'post' 대신 'item' prop을 전달하도록 수정 */}

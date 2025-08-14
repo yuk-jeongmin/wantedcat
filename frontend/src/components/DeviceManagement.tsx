@@ -141,7 +141,7 @@ export function DeviceManagement({ devices, onAddDevice, onEditDevice, onDeleteD
                         <IconComponent className="w-5 h-5 text-primary" />
                       </div>
                       <div>
-                        <CardTitle className="text-base">{device.name}</CardTitle>
+                        <CardTitle className="text-base">{device.devicename}</CardTitle>
                         <p className="text-sm text-muted-foreground">
                           {deviceTypeNames[device.type]}
                         </p>
@@ -157,7 +157,7 @@ export function DeviceManagement({ devices, onAddDevice, onEditDevice, onDeleteD
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => onEditDevice(device)}>
                             <Settings className="w-4 h-4 mr-2" />
-                            설정
+                            수정
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => onDeleteDevice(device.id)}

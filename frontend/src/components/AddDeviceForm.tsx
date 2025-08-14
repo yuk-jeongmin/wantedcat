@@ -29,6 +29,7 @@ interface AddDeviceFormProps {
   onClose: () => void;
   onSubmit: (deviceData: Omit<Device, 'id' | 'lastConnected'>) => void;
   editingDevice?: Device | null;
+  streamKey?: string | null;
 }
 
 const deviceTypes = [
@@ -36,15 +37,16 @@ const deviceTypes = [
   { value: 'sensor', label: '센서', icon: Activity },
 ];
 
-export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFormProps) {
+export function AddDeviceForm({ onClose, onSubmit, editingDevice, streamKey }: AddDeviceFormProps) {
   // --- 상태 관리 (State Management) ---
 
   const [formData, setFormData] = useState({
-    devicename: '',
+    name: '',
     type: 'camera',
     wifiName: '',
     wifiPassword: '',
     location: '',
+    homecamIp:'',
   });
 
   const [uiDevices, setUiDevices] = useState<CustomBluetoothDevice[]>([]);
@@ -52,15 +54,17 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
   const [isScanning, setIsScanning] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [scanCompleted, setScanCompleted] = useState(false);
-  
+  const [isConnected, setIsConnected] = useState(false);
+
   useEffect(() => {
     if (editingDevice) {
       setFormData({
-        devicename: editingDevice.devicename || '',
+        name: editingDevice.devicename || '',
         type: editingDevice.type || 'camera',
         wifiName: editingDevice.wifiName || '',
         location: editingDevice.location || '',
         wifiPassword: '', 
+        homecamIp:'',
       });
     }
   }, [editingDevice]);
@@ -115,17 +119,12 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
     try {
       await activeBleDevice.gatt.connect();
       console.log(`${activeBleDevice.name}에 성공적으로 연결되었습니다.`);
-      
+      setIsConnected(true);
       setUiDevices(prev => 
         prev.map(d => 
           d.id === activeBleDevice.id ? { ...d, connected: true } : d
         )
       );
-
-      setFormData(prev => ({
-        ...prev,
-        name: activeBleDevice.name || 'Unknown Device',
-      }));
 
     } catch (error) {
       console.error('블루투스 연결 실패:', error);
@@ -149,7 +148,7 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
 
     // 2. 전송할 데이터 준비
     const { wifiName, wifiPassword } = formData;
-    const streamKey = sessionStorage.getItem('streamkey'); // 세션 스토리지에서 streamkey 가져오기
+    const streamKey = sessionStorage.getItem('streamKey'); // 세션 스토리지에서 streamkey 가져오기
 
     if (!wifiName || !wifiPassword) {
       alert('WiFi 이름과 비밀번호를 모두 입력해주세요.');
@@ -193,7 +192,7 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const deviceData: Omit<Device, 'id' | 'lastConnected'> = {
-      devicename: formData.devicename,
+      devicename: formData.name,
       type: formData.type as Device['type'],
       wifiName: formData.wifiName || undefined,
       location: formData.location || undefined,
@@ -220,7 +219,7 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
                 <Label htmlFor="device-name">장치 이름</Label>
                 <Input
                   id="device-name"
-                  value={formData.devicename}
+                  value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="예: 거실 카메라"
                   required
@@ -333,12 +332,35 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
                       placeholder="WiFi 비밀번호"
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="wifi-password">홈캠 IP</Label>
+                    <Input
+                      id="homecam-ip"
+                      type="ip"
+                      value={formData.homecamIp}
+                      onChange={(e) => handleInputChange('homecamIp', e.target.value)}
+                      placeholder="홈캠 IP"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="stream-key">스트림 키</Label>
+                    <Input
+                      id="stream-key"
+                      value={streamKey || '세션에서 키를 찾을 수 없습니다.'}
+                      readOnly // 이 속성으로 인해 입력창이 수정 불가능하게 됩니다.
+                      className="bg-muted text-muted-foreground" // 시각적으로 비활성화된 것처럼 보이게 함
+                    />
+                  </div>
+
+
                   <div className="pt-2">
                     <Button
                       type="button"
                       className="w-full"
                       onClick={handleSendWifiCredentials} // onClick 이벤트에 함수 연결
-                      disabled={!activeBleDevice?.gatt?.connected || isConnecting}
+                      disabled={!isConnected || isConnecting}
                     >
                       전송
                     </Button>
