@@ -23,7 +23,7 @@ export interface Device {
 
 export interface BluetoothDevice {
   id: string;
-  name: string;
+  blename: string;
   rssi: number;
   type: string;
   connected: boolean;

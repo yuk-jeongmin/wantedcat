@@ -39,31 +39,24 @@ const deviceTypes = [
 export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFormProps) {
   // --- 상태 관리 (State Management) ---
 
-  // 1. 폼 입력 데이터 상태
   const [formData, setFormData] = useState({
-    name: '',
+    devicename: '',
     type: 'camera',
     wifiName: '',
     wifiPassword: '',
     location: '',
   });
 
-  // [역할 분리] 2. UI 목록에 표시될 장치들의 상태 (우리가 만든 Custom 타입 사용)
   const [uiDevices, setUiDevices] = useState<CustomBluetoothDevice[]>([]);
-  
-  // [역할 분리] 3. 실제 연결에 사용할 단일 네이티브 장치 객체 상태 🔑
   const [activeBleDevice, setActiveBleDevice] = useState<BluetoothDevice | null>(null);
-
-  // 4. UI 제어를 위한 상태 (로딩, 완료 등)
   const [isScanning, setIsScanning] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [scanCompleted, setScanCompleted] = useState(false);
   
-  // 수정 시 폼 데이터 초기화
   useEffect(() => {
     if (editingDevice) {
       setFormData({
-        name: editingDevice.devicename || '',
+        devicename: editingDevice.devicename || '',
         type: editingDevice.type || 'camera',
         wifiName: editingDevice.wifiName || '',
         location: editingDevice.location || '',
@@ -91,22 +84,17 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
     setActiveBleDevice(null);
 
     try {
-      // 1. 브라우저로부터 실제 네이티브 장치 객체를 받습니다.
       const nativeDevice = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
-
-      // 2. 실제 연결에 사용할 네이티브 객체를 상태에 저장합니다. 🔑
       setActiveBleDevice(nativeDevice);
 
-      // 3. UI에 표시할 커스텀 객체를 만듭니다. 🖼️
       const deviceForUi: CustomBluetoothDevice = {
         id: nativeDevice.id,
-        name: nativeDevice.name || 'Unknown Device',
+        blename: nativeDevice.name || 'Unknown Device',
         connected: false,
-        rssi: 0, // rssi는 Web Bluetooth API에서 제공하지 않으므로 기본값을 사용합니다.
+        rssi: 0,
         type: 'unknown',
       };
 
-      // 4. UI 목록 상태를 업데이트합니다.
       setUiDevices([deviceForUi]);
       setScanCompleted(true);
     } catch (error) {
@@ -117,7 +105,6 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
   };
 
   const connectToBluetoothDevice = async () => {
-    // 인자를 받는 대신, 상태에 저장된 네이티브 객체를 사용합니다.
     if (!activeBleDevice || !activeBleDevice.gatt) {
       alert('연결할 장치가 선택되지 않았습니다.');
       return;
@@ -126,18 +113,15 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
     setIsConnecting(true);
 
     try {
-      // 1. gatt 서버에 연결합니다.
       await activeBleDevice.gatt.connect();
       console.log(`${activeBleDevice.name}에 성공적으로 연결되었습니다.`);
       
-      // 2. 연결에 성공하면 UI 목록의 connected 상태를 true로 업데이트합니다.
       setUiDevices(prev => 
         prev.map(d => 
           d.id === activeBleDevice.id ? { ...d, connected: true } : d
         )
       );
 
-      // 3. 폼 데이터를 자동으로 채웁니다.
       setFormData(prev => ({
         ...prev,
         name: activeBleDevice.name || 'Unknown Device',
@@ -150,10 +134,66 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
     }
   };
 
+  // [추가된 기능] WiFi 정보 및 스트림 키 전송 함수
+  const handleSendWifiCredentials = async () => {
+    // [중요] 이 UUID들은 실제 블루투스 장치에 설정된 값으로 반드시 교체해야 합니다.
+    // 펌웨어 개발자에게 문의하여 정확한 값을 받으세요.
+    const WIFI_SERVICE_UUID = '0000aaaa-0000-1000-8000-00805f9b34fb'; // 예시: 커스텀 서비스
+    const WIFI_CHARACTERISTIC_UUID = '0000bbbb-0000-1000-8000-00805f9b34fb'; // 예시: 커스텀 특성
+
+    // 1. 블루투스 연결 상태 확인
+    if (!activeBleDevice || !activeBleDevice.gatt?.connected) {
+      alert('블루투스 장치가 연결되어 있지 않습니다.');
+      return;
+    }
+
+    // 2. 전송할 데이터 준비
+    const { wifiName, wifiPassword } = formData;
+    const streamKey = sessionStorage.getItem('streamkey'); // 세션 스토리지에서 streamkey 가져오기
+
+    if (!wifiName || !wifiPassword) {
+      alert('WiFi 이름과 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+    if (!streamKey) {
+      alert('세션에서 스트림 키를 찾을 수 없습니다. 먼저 스트림 키를 생성하거나 받아와주세요.');
+      return;
+    }
+
+    try {
+      console.log('데이터를 전송 준비 중...');
+
+      // 3. 데이터를 JSON 문자열로 변환 후, 바이트 배열(Uint8Array)로 인코딩
+      // 블루투스는 텍스트가 아닌 바이트 단위로 통신하기 때문에 변환이 필수입니다.
+      const dataToSend = {
+        ssid: wifiName,
+        password: wifiPassword,
+        key: streamKey,
+      };
+      const jsonString = JSON.stringify(dataToSend);
+      const value = new TextEncoder().encode(jsonString);
+
+      console.log(`전송할 데이터: ${jsonString}`);
+
+      // 4. 올바른 서비스와 특성을 찾아 데이터 쓰기
+      const service = await activeBleDevice.gatt.getPrimaryService(WIFI_SERVICE_UUID);
+      const characteristic = await service.getCharacteristic(WIFI_CHARACTERISTIC_UUID);
+
+      // writeValueWithResponse: 장치로부터 "잘 받았다"는 응답을 기다리는, 더 안정적인 쓰기 방식
+      await characteristic.writeValueWithResponse(value);
+
+      alert('데이터를 성공적으로 전송했습니다!');
+
+    } catch (error) {
+      console.error('데이터 전송 실패:', error);
+      alert(`데이터 전송 중 오류가 발생했습니다: ${error}`);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const deviceData: Omit<Device, 'id' | 'lastConnected'> = {
-      devicename: formData.name,
+      devicename: formData.devicename,
       type: formData.type as Device['type'],
       wifiName: formData.wifiName || undefined,
       location: formData.location || undefined,
@@ -166,16 +206,7 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{editingDevice ? '장치 수정' : '새 장치 추가'}</DialogTitle>
-          <DialogDescription>
-            {editingDevice 
-              ? '장치 설정을 수정하고 연결 상태를 업데이트하세요.' 
-              : 'WiFi 설정과 블루투스 연결을 통해 새로운 IoT 장치를 추가하세요.'
-            }
-          </DialogDescription>
-        </DialogHeader>
-
+        {/* DialogHeader, form, Tabs 등 기존 JSX는 동일 */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <Tabs defaultValue="basic" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
@@ -185,11 +216,11 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
             
             {/* 기본 설정 탭 */}
             <TabsContent value="basic" className="space-y-4">
-              <div className="space-y-2">
+                <div className="space-y-2">
                 <Label htmlFor="device-name">장치 이름</Label>
                 <Input
                   id="device-name"
-                  value={formData.name}
+                  value={formData.devicename}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="예: 거실 카메라"
                   required
@@ -219,12 +250,12 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
                   onChange={(e) => handleInputChange('location', e.target.value)}
                   placeholder="예: 거실, 주방, 침실"
                 />
-              </div>
+                </div>
             </TabsContent>
             
             {/* 연결 설정 탭 */}
             <TabsContent value="connection" className="space-y-4">
-                            {/* Bluetooth Card */}
+              {/* Bluetooth Card */}
               <Card>
                 <CardHeader><CardTitle className="flex items-center gap-2"><Bluetooth className="w-5 h-5" /> 블루투스 장치 검색</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
@@ -256,7 +287,7 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
                           <div className="flex items-center justify-between">
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className="font-medium">{device.name}</span>
+                                <span className="font-medium">{device.blename}</span>
                                 {device.connected && <CheckCircle className="w-4 h-4 text-green-600" />}
                               </div>
                               <div className="text-sm text-muted-foreground">신호 강도: {device.rssi} dBm</div>
@@ -277,33 +308,43 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice }: AddDeviceFor
                   )}
                 </CardContent>
               </Card>
-              {/* WiFi Card */}
+
+
+              {/* WiFi Card - 전송 버튼 로직이 연결됨 */}
               <Card>
                 <CardHeader><CardTitle className="flex items-center gap-2"><Wifi className="w-5 h-5" /> WiFi 설정</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="wifi-name">WiFi 이름 (SSID)</Label>
-                  <Input
-                    id="wifi-name"
-                    value={formData.wifiName}
-                    onChange={(e) => handleInputChange('wifiName', e.target.value)}
-                    placeholder="WiFi 네트워크 이름"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="wifi-password">WiFi 비밀번호</Label>
-                  <Input
-                    id="wifi-password"
-                    type="password"
-                    value={formData.wifiPassword}
-                    onChange={(e) => handleInputChange('wifiPassword', e.target.value)}
-                    placeholder="WiFi 비밀번호"
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="wifi-name">WiFi 이름 (SSID)</Label>
+                    <Input
+                      id="wifi-name"
+                      value={formData.wifiName}
+                      onChange={(e) => handleInputChange('wifiName', e.target.value)}
+                      placeholder="WiFi 네트워크 이름"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="wifi-password">WiFi 비밀번호</Label>
+                    <Input
+                      id="wifi-password"
+                      type="password"
+                      value={formData.wifiPassword}
+                      onChange={(e) => handleInputChange('wifiPassword', e.target.value)}
+                      placeholder="WiFi 비밀번호"
+                    />
+                  </div>
+                  <div className="pt-2">
+                    <Button
+                      type="button"
+                      className="w-full"
+                      onClick={handleSendWifiCredentials} // onClick 이벤트에 함수 연결
+                      disabled={!activeBleDevice?.gatt?.connected || isConnecting}
+                    >
+                      전송
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
-                  
-
             </TabsContent>
           </Tabs>
 
