@@ -13,4 +13,15 @@ public class DeviceDto {
         private String wifiName;
         private String location;
     }
+
+    @Getter
+    @Setter
+    public static class UpdateRequest {
+        private String devicename;
+        private String type;
+        private String wifiName;
+        private String location;
+    }
+
+
 }
