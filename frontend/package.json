@@ -27,6 +27,7 @@
     "axios": "^1.11.0",
     "class-variance-authority": "^0.7.1",
     "hls.js": "^1.6.9",
+    "java": "^0.16.2",
     "lucide-react": "^0.487.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.1",

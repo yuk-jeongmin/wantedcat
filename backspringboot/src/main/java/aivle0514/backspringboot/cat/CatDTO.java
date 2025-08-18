@@ -12,77 +12,30 @@ public class CatDTO {
 
     @Getter
     @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Post {
-        @NotNull
-        private Long userId;
-
-        @NotBlank
+    public static class AddRequestCat {
+        // private Long userId;
         private String name;
-
-        @NotBlank
-        private String type;
-
-        @NotBlank
+        private String breed;
         private String gender;
-
-        @NotNull
         private int age;
-
         private String image;
         private String memo;
         private Float weight;
-
-        @NotNull
-        private HealthStatus healthStatus; // Enum 사용
-
+        private HealthStatus healthStatus;
         private String aiDataFile;
     }
 
     @Getter
     @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Put {
-        @NotBlank
+    public static class UpdateRequestCat {
         private String name;
-
-        @NotBlank
-        private String type;
-
-        @NotBlank
-        private String gender;
-
-        @NotNull
-        private int age;
-
-        private String image;
-        private String memo;
-        private Float weight;
-
-        @NotNull
-        private HealthStatus healthStatus; // Enum 사용
-
-        private String aiDataFile;
-    }
-
-    @Getter
-    @Setter
-    @Builder
-    public static class Response {
-        private Long catId;
-        private Long userId;
-        private String name;
-        private String type;
+        private String breed;
         private String gender;
         private int age;
         private String image;
         private String memo;
         private Float weight;
-        private HealthStatus healthStatus; // Enum
+        private HealthStatus healthStatus;
         private String aiDataFile;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
     }
 }

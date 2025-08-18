@@ -21,7 +21,7 @@ export function AddCatForm({ onClose, onSubmit, editingCat }: AddCatFormProps) {
     weight: editingCat?.weight || '',
     gender: editingCat?.gender || 'male' as 'male' | 'female',
     healthStatus: editingCat?.healthStatus || 'healthy' as 'healthy' | 'caution' | 'sick',
-    specialNotes: editingCat?.specialNotes || '',
+    memo: editingCat?.memo || '',
     image: editingCat?.image || ''
   });
 
@@ -30,17 +30,23 @@ export function AddCatForm({ onClose, onSubmit, editingCat }: AddCatFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+    /**
     if (!formData.name.trim() || !formData.breed.trim() || !formData.age.trim() || !formData.weight.trim()) {
       alert('필수 항목을 모두 입력해주세요.');
       return;
     }
-
-    onSubmit({
-      ...formData,
+       */
+    const catData: Omit<Cat, 'id' | 'lastCheckup'> = {
+      name: formData.name,
+      breed: formData.breed,
+      age: formData.age,
+      weight: formData.weight,
+      gender: formData.gender,
+      healthStatus: formData.healthStatus,
+      memo: formData.memo,
       image: imagePreview
-    });
-    onClose();
+    };
+    onSubmit(catData);
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,6 +85,8 @@ export function AddCatForm({ onClose, onSubmit, editingCat }: AddCatFormProps) {
       fileInput.value = '';
     }
   };
+
+
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -222,8 +230,8 @@ export function AddCatForm({ onClose, onSubmit, editingCat }: AddCatFormProps) {
             <Label htmlFor="notes">특이사항</Label>
             <Textarea
               id="notes"
-              value={formData.specialNotes}
-              onChange={(e) => setFormData(prev => ({ ...prev, specialNotes: e.target.value }))}
+              value={formData.memo}
+              onChange={(e) => setFormData(prev => ({ ...prev, memo: e.target.value }))}
               placeholder="알레르기, 특별한 관리사항, 성격 등을 입력하세요"
               rows={3}
             />
@@ -289,7 +297,7 @@ export function AddCatForm({ onClose, onSubmit, editingCat }: AddCatFormProps) {
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               취소
             </Button>
-            <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90">
+            <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90" >
               {editingCat ? '수정하기' : '등록하기'}
             </Button>
           </div>
