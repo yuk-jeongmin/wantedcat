@@ -30,6 +30,70 @@ CREATE TABLE IF NOT EXISTS devices (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    content LONGTEXT NOT NULL,
+    author VARCHAR(255) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    category VARCHAR(100) NOT NULL,
+    views INT NOT NULL DEFAULT 0,
+    likes INT NOT NULL DEFAULT 0,
+    comments INT NOT NULL DEFAULT 0,
+    CHECK (views >= 0),
+    CHECK (likes >= 0),
+    CHECK (comments >= 0),
+    INDEX idx_posts_created_at (created_at),
+    INDEX idx_posts_category_created (category, created_at)
+    -- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS questions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    content LONGTEXT NOT NULL,
+    author VARCHAR(255) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    category VARCHAR(100) NOT NULL,
+    status ENUM('문의중','답변대기','답변완료') NOT NULL DEFAULT '문의중',
+    views INT NOT NULL DEFAULT 0,
+    answers_count INT NOT NULL DEFAULT 0,
+    CHECK (views >= 0),
+    CHECK (answers_count >= 0),
+    INDEX idx_questions_created_at (created_at),
+    INDEX idx_questions_status_created (status, created_at)
+    -- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS question_answers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question_id INT NOT NULL,
+    content LONGTEXT NOT NULL,
+    author VARCHAR(255) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_answers_question
+        FOREIGN KEY (question_id) REFERENCES questions(id)
+        ON DELETE CASCADE
+    -- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS notices (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    content LONGTEXT NOT NULL,
+    author VARCHAR(255) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    category VARCHAR(100) NOT NULL,
+    views INT NOT NULL DEFAULT 0,
+    priority ENUM('일반','중요','긴급') NOT NULL DEFAULT '일반',
+    is_pinned TINYINT(1) NOT NULL DEFAULT 0,
+    CHECK (views >= 0),
+    CHECK (is_pinned IN (0, 1)),
+    INDEX idx_notices_pinned_created (is_pinned, created_at),
+    INDEX idx_notices_priority_created (priority, created_at)
+    -- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS cats (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT,
