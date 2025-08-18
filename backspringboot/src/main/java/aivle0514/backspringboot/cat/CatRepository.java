@@ -1,7 +1,6 @@
 package aivle0514.backspringboot.cat;
 
-// import com.example.cat.domain.Cat;
-// import com.example.cat.domain.HealthStatus;
+import aivle0514.backspringboot.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -10,7 +9,9 @@ import java.util.List;
 
 @Repository
 public interface CatRepository extends JpaRepository<Cat, Long> {
-    List<Cat> findByNameContainingOrTypeContaining(String name, String type);
+
+    List<Cat> findAllByUser(User user); // Device -> Cat으로 수정
+    List<Cat> findByNameContainingOrBreedContaining(String nameKeyword, String breedKeyword);
 
     // HealthStatus별 카운트
     long countByHealthStatus(HealthStatus status);

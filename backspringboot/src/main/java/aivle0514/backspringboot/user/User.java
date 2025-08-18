@@ -7,6 +7,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.util.UUID;
 
+// 순환참조 막기
+import java.util.List;
+import java.util.ArrayList;
+import aivle0514.backspringboot.cat.Cat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -48,4 +56,8 @@ public class User {
         this.role = "user"; // 기본 역할 'user'로 설정
         this.streamKey = UUID.randomUUID().toString();
     }
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference   // 순환참조 방지
+    private List<Cat> cats = new ArrayList<>();
 }
