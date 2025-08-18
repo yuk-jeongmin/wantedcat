@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CatStatsDTO {
+public class CatStatsDto {
     private long totalCats;
     private long healthyCats;    // HealthStatus.건강
     private long attentionCats;  // HealthStatus.주의

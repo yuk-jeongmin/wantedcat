@@ -5,8 +5,11 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter      // <-- 추가
+@Setter      // <-- 추가
+@NoArgsConstructor // <-- 추가 (기본 생성자)
+@AllArgsConstructor// <-- 추가 (모든 필드 생성자)
+@Builder     // <-- 추가 (빌더 패턴)
 @Table(name = "notices")
 public class Notice {
 
@@ -21,7 +24,6 @@ public class Notice {
     @Lob @Column(nullable = false)
     private String content;
 
-    /** 작성자 username 문자열 (FK 없음) */
     @Column(name = "author", nullable = false, length = 255)
     private String author;
 
@@ -32,30 +34,22 @@ public class Notice {
     private String category;
 
     @Column(nullable = false)
-    private int views;
+    @Builder.Default // [수정] Builder 기본값 설정
+    private int views = 0;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
-    private Priority priority;
+    @Builder.Default // [수정] Builder 기본값 설정
+    private Priority priority = Priority.일반;
 
     @Column(name = "is_pinned", nullable = false)
-    private boolean isPinned;
+    @Builder.Default // [수정] Builder 기본값 설정
+    private boolean isPinned = false;
 
     @PrePersist
     void onCreate() {
         if (createdAt == null) createdAt = LocalDateTime.now();
     }
 
-    @Builder
-    public Notice(String title, String content, String author, String category,
-                  Priority priority, Boolean isPinned, Integer views, LocalDateTime createdAt) {
-        this.title = title;
-        this.content = content;
-        this.author = author;
-        this.category = category;
-        this.priority = priority != null ? priority : Priority.일반;
-        this.isPinned = isPinned != null && isPinned;
-        this.views = views != null ? views : 0;
-        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
-    }
+    // [수정] 수동으로 만든 생성자는 삭제합니다.
 }

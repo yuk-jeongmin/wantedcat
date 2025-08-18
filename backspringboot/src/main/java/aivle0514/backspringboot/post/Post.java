@@ -5,8 +5,11 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter      // <-- 추가
+@Setter      // <-- 추가
+@NoArgsConstructor // <-- 추가 (기본 생성자)
+@AllArgsConstructor// <-- 추가 (모든 필드 생성자)
+@Builder     // <-- 추가 (빌더 패턴)
 @Table(name = "posts")
 public class Post {
 
@@ -19,7 +22,6 @@ public class Post {
     @Lob @Column(nullable = false)
     private String content;
 
-    /** 작성자 username 문자열 (FK 없음) */
     @Column(name = "author", nullable = false, length = 255)
     private String author;
 
@@ -30,29 +32,21 @@ public class Post {
     private String category;
 
     @Column(nullable = false)
-    private int views;
+    @Builder.Default // Builder 사용 시 기본값을 설정해주는 어노테이션
+    private int views = 0;
 
     @Column(nullable = false)
-    private int likes;
+    @Builder.Default
+    private int likes = 0;
 
     @Column(name = "comments", nullable = false)
-    private int comments;
+    @Builder.Default
+    private int comments = 0;
 
     @PrePersist
     void onCreate() {
         if (createdAt == null) createdAt = LocalDateTime.now();
     }
 
-    @Builder
-    public Post(String title, String content, String author, String category,
-                Integer views, Integer likes, Integer comments, LocalDateTime createdAt) {
-        this.title = title;
-        this.content = content;
-        this.author = author;
-        this.category = category;
-        this.views = views != null ? views : 0;
-        this.likes = likes != null ? likes : 0;
-        this.comments = comments != null ? comments : 0;
-        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
-    }
+    // 수동으로 만든 생성자와 @Builder는 삭제합니다.
 }

@@ -47,7 +47,7 @@ public class DeviceService {
     /**
      * [추가] 장치 정보를 수정하는 서비스 메소드
      * @param deviceId 수정할 장치의 ID
-     * @param requestDto 수정할 정보가 담긴 DTO
+     * @param requestDto 수정할 정보가 담긴 Dto
      * @param userEmail 요청한 사용자의 이메일
      * @return 수정된 장치 정보
      */
@@ -63,7 +63,7 @@ public class DeviceService {
             throw new IllegalStateException("장치를 수정할 권한이 없습니다.");
         }
 
-        // 3. DTO로부터 받은 정보로 장치 내용을 업데이트합니다.
+        // 3. Dto로부터 받은 정보로 장치 내용을 업데이트합니다.
         device.update(requestDto.getDevicename(), requestDto.getType(), requestDto.getWifiName(), requestDto.getLocation());
         
         // @Transactional 어노테이션의 더티 체킹 기능으로 인해 save를 호출할 필요가 없습니다.

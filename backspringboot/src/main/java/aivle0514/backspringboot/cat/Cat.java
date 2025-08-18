@@ -2,18 +2,14 @@ package aivle0514.backspringboot.cat;
 
 import aivle0514.backspringboot.user.User;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter; 
-import java.time.LocalDateTime; 
+import lombok.*; // AllArgsConstructor 추가
+import java.time.LocalDateTime;
 
 // 순환참조 막기
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
-
+@Builder // [수정] 클래스 레벨로 이동
+@AllArgsConstructor // [수정] Builder를 위해 추가
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Setter
@@ -23,7 +19,7 @@ public class Cat {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    @JsonBackReference  // 순환참조 막기
+    @JsonBackReference
     private User user;
 
     @Id
@@ -64,27 +60,12 @@ public class Cat {
     @Column
     private LocalDateTime updatedAt;
 
-    @Builder
-    public Cat(String name, String breed, String gender, int age, String image, String memo,
-               Float weight, HealthStatus healthStatus, String aiDataFile, User user) {
-        this.name = name;
-//        this.type = type;
-        this.breed = breed;
-        this.gender = gender;
-        this.age = age;
-        this.image = image;
-        this.memo = memo;
-        this.weight = weight;
-        this.healthStatus = healthStatus;
-        this.aiDataFile = aiDataFile;
-        this.user = user;
-    }
+    // [수정] 수동으로 만든 생성자는 삭제합니다. Lombok이 @AllArgsConstructor와 @Builder로 자동 생성합니다.
 
-    // 업데이트 메서드
+    // 업데이트 메서드는 그대로 유지합니다.
     public void update(String name, String breed, String gender, int age, String image,
                        String memo, Float weight, HealthStatus healthStatus, String aiDataFile) {
         this.name = name;
-        //this.type = type;
         this.breed = breed;
         this.gender = gender;
         this.age = age;
@@ -93,6 +74,5 @@ public class Cat {
         this.weight = weight;
         this.healthStatus = healthStatus;
         this.aiDataFile = aiDataFile;
-
     }
 }

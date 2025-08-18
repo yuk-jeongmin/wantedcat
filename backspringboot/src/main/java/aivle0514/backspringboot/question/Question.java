@@ -5,8 +5,11 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter @Setter
+@Getter 
+@Setter
+@Builder // [수정] 클래스 레벨로 이동
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor // [수정] Builder를 위해 추가
 @Table(name = "questions")
 public class Question {
 
@@ -21,7 +24,6 @@ public class Question {
     @Lob @Column(nullable = false)
     private String content;
 
-    /** 작성자 username 문자열 (FK 없음) */
     @Column(name = "author", nullable = false, length = 255)
     private String author;
 
@@ -33,29 +35,21 @@ public class Question {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private Status status;
+    @Builder.Default // [수정] Builder 기본값 설정
+    private Status status = Status.문의중;
 
     @Column(nullable = false)
-    private int views;
+    @Builder.Default // [수정] Builder 기본값 설정
+    private int views = 0;
 
     @Column(name = "answers_count", nullable = false)
-    private int answersCount;
+    @Builder.Default // [수정] Builder 기본값 설정
+    private int answersCount = 0;
 
     @PrePersist
     void onCreate() {
         if (createdAt == null) createdAt = LocalDateTime.now();
     }
 
-    @Builder
-    public Question(String title, String content, String author, String category,
-                    Status status, Integer views, Integer answersCount, LocalDateTime createdAt) {
-        this.title = title;
-        this.content = content;
-        this.author = author;
-        this.category = category;
-        this.status = status != null ? status : Status.문의중;
-        this.views = views != null ? views : 0;
-        this.answersCount = answersCount != null ? answersCount : 0;
-        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
-    }
+    // [수정] 수동으로 만든 생성자는 삭제합니다.
 }

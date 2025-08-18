@@ -18,7 +18,7 @@ public class CatService {
      * 새로운 고양이를 추가하는 서비스 메소드
      */
     @Transactional
-    public Cat addCat(CatDTO.AddRequestCat requestCatDto, String userEmail) {
+    public Cat addCat(CatDto.AddRequestCat requestCatDto, String userEmail) {
         User currentUser = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
@@ -49,7 +49,7 @@ public class CatService {
     // @param userEmail
     // @return
     @Transactional
-    public Cat updateCat(Long id, CatDTO.UpdateRequestCat requestCatDto, String userEmail) {
+    public Cat updateCat(Long id, CatDto.UpdateRequestCat requestCatDto, String userEmail) {
     
         Cat cat = catRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("해당 고양이를 찾을 수 없습니다."));
@@ -98,13 +98,13 @@ public class CatService {
      * 통계 반환
      */
     @Transactional(readOnly = true)
-    public CatStatsDTO getCatStats() {
+    public CatStatsDto getCatStats() {
         long total = catRepository.count();
         long healthy = catRepository.countByHealthStatus(HealthStatus.healthy);
         long attention = catRepository.countByHealthStatus(HealthStatus.caution);
         Double avgWeightObj = catRepository.findAverageWeight();
         double avgWeight = (avgWeightObj == null) ? 0.0 : avgWeightObj;
-        return new CatStatsDTO(total, healthy, attention, avgWeight);
+        return new CatStatsDto(total, healthy, attention, avgWeight);
     }
 
     @Transactional(readOnly = true)
@@ -131,5 +131,5 @@ public class CatService {
     // List<Cat> searchCats(String keyword);
 
     // 추가된 통계 반환 메서드
-    // CatStatsDTO getCatStats();
+    // CatStatsDto getCatStats();
 }
