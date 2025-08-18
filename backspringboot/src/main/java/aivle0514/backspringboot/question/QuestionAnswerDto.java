@@ -1,4 +1,4 @@
-package aivle0514.backspringboot.question.dto;
+package aivle0514.backspringboot.question;
 
 import aivle0514.backspringboot.question.QuestionAnswer;
 import lombok.*;
@@ -7,14 +7,22 @@ import java.time.LocalDateTime;
 
 public class QuestionAnswerDto {
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter 
+    @Setter 
+    @NoArgsConstructor 
+    @AllArgsConstructor 
+    @Builder
     public static class CreateRequest {
         @NotNull  private Long   questionId;
         @NotBlank private String content;
         @NotBlank private String author;     // 문자열
     }
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter 
+    @Setter 
+    @NoArgsConstructor 
+    @AllArgsConstructor 
+    @Builder
     public static class Response {
         private Long id;
         private Long questionId;

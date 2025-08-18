@@ -31,7 +31,7 @@ public class UserController {
         // 인증 객체에서 사용자 이메일을 가져옵니다.
         String userEmail = authentication.getName();
         
-        // 이메일을 사용해 사용자 정보를 조회하고 DTO로 변환합니다.
+        // 이메일을 사용해 사용자 정보를 조회하고 Dto로 변환합니다.
         UserDto.UserResponse userInfo = userService.getUserInfoByEmail(userEmail);
         
         // 조회된 사용자 정보를 응답으로 보냅니다.

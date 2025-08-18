@@ -68,7 +68,7 @@ const mockTodos: TodoItem[] = [
 export function Schedule() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [showAddTodo, setShowAddTodo] = useState(false);
+  const [showAdDtodo, setShowAdDtodo] = useState(false);
   const [todos, setTodos] = useState<TodoItem[]>(mockTodos);
   const [newTodo, setNewTodo] = useState({
     title: '',
@@ -119,7 +119,7 @@ export function Schedule() {
     setCurrentDate(newDate);
   };
 
-  const handleAddTodo = () => {
+  const handleAdDtodo = () => {
     if (!newTodo.title.trim() || !selectedDate) return;
 
     const todoItem: TodoItem = {
@@ -134,7 +134,7 @@ export function Schedule() {
 
     setTodos(prev => [...prev, todoItem]);
     setNewTodo({ title: '', description: '', time: '', category: 'other' });
-    setShowAddTodo(false);
+    setShowAdDtodo(false);
   };
 
   const toggleTodoComplete = (todoId: number) => {
@@ -264,7 +264,7 @@ export function Schedule() {
                     </h3>
                     <Button 
                       size="sm" 
-                      onClick={() => setShowAddTodo(true)}
+                      onClick={() => setShowAdDtodo(true)}
                       className="bg-primary hover:bg-primary/90"
                     >
                       <Plus className="w-4 h-4 mr-1" />
@@ -403,7 +403,7 @@ export function Schedule() {
       </div>
 
       {/* Add Todo Modal */}
-      {showAddTodo && selectedDate && (
+      {showAdDtodo && selectedDate && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-md">
             <CardHeader>
@@ -470,7 +470,7 @@ export function Schedule() {
                 <Button 
                   variant="outline" 
                   onClick={() => {
-                    setShowAddTodo(false);
+                    setShowAdDtodo(false);
                     setNewTodo({ title: '', description: '', time: '', category: 'other' });
                   }}
                   className="flex-1"
@@ -478,7 +478,7 @@ export function Schedule() {
                   취소
                 </Button>
                 <Button 
-                  onClick={handleAddTodo}
+                  onClick={handleAdDtodo}
                   disabled={!newTodo.title.trim()}
                   className="flex-1 bg-primary hover:bg-primary/90"
                 >

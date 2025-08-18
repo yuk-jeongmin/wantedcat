@@ -7,7 +7,7 @@ services:
     container_name: frontend_container
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     restart: always
     ports:
       # 로컬 PC의 5174 포트와 컨테이너의 5174 포트를 연결합니다.

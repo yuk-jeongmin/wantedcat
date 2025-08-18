@@ -7,7 +7,11 @@ import java.time.LocalDateTime;
 
 public class QuestionDto {
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter
+    @Setter 
+    @NoArgsConstructor 
+    @AllArgsConstructor 
+    @Builder
     public static class CreateRequest {
         @NotBlank private String title;
         @NotBlank private String content;
@@ -16,7 +20,11 @@ public class QuestionDto {
                   private String status;   // "문의중" | "답변대기" | "답변완료"
     }
 
-    @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+    @Getter 
+    @Setter 
+    @NoArgsConstructor 
+    @AllArgsConstructor 
+    @Builder
     public static class UpdateRequest {
         @NotBlank private String author;
                   private String title;

@@ -33,7 +33,7 @@ public class CatController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity<Cat> addCat(@RequestBody CatDTO.AddRequestCat requestCatDto, Authentication authentication) {
+    public ResponseEntity<Cat> addCat(@RequestBody CatDto.AddRequestCat requestCatDto, Authentication authentication) {
         // 현재 인증된 사용자의 이메일을 가져옵니다.
         String userEmail = authentication.getName();
         
@@ -62,7 +62,7 @@ public class CatController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Cat> updateCat(@PathVariable Long id, 
-                                         @RequestBody CatDTO.UpdateRequestCat requestCatDto,
+                                         @RequestBody CatDto.UpdateRequestCat requestCatDto,
                                          Authentication authentication) {
         String userEmail = authentication.getName();
         Cat updatedCat = catService.updateCat(id, requestCatDto, userEmail);
@@ -94,13 +94,13 @@ public class CatController {
 
  
     @Transactional(readOnly = true)
-    public CatStatsDTO getCatStats() {
+    public CatStatsDto getCatStats() {
         long total = catRepository.count();
         long healthy = catRepository.countByHealthStatus(HealthStatus.healthy);
         long attention = catRepository.countByHealthStatus(HealthStatus.caution);
         Double avgWeightObj = catRepository.findAverageWeight();
         double avgWeight = (avgWeightObj == null) ? 0.0 : avgWeightObj;
-        return new CatStatsDTO(total, healthy, attention, avgWeight);
+        return new CatStatsDto(total, healthy, attention, avgWeight);
     }
 
     @GetMapping("/{id}")

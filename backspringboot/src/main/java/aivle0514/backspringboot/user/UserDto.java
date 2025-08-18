@@ -31,7 +31,7 @@ public class UserDto {
         }
     }
 
-    // ✨ User 엔티티의 모든 정보를 포함하도록 업데이트된 응답 DTO
+    // ✨ User 엔티티의 모든 정보를 포함하도록 업데이트된 응답 Dto
     @Getter
     public static class UserResponse {
         private final Long id;

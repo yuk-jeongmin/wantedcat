@@ -1,19 +1,15 @@
 package aivle0514.backspringboot.cat;
-
-
-import jakarta.validation.constraints.*;
+import aivle0514.backspringboot.cat.HealthStatus;
 import lombok.*;
-import lombok.Getter;
-import lombok.Setter;
 
-import java.time.LocalDateTime;
-
-public class CatDTO {
+public class CatDto {
 
     @Getter
     @Setter
+    @Builder // [수정] 추가
+    @NoArgsConstructor // [수정] 추가
+    @AllArgsConstructor // [수정] 추가
     public static class AddRequestCat {
-        // private Long userId;
         private String name;
         private String breed;
         private String gender;
@@ -27,6 +23,9 @@ public class CatDTO {
 
     @Getter
     @Setter
+    @Builder // [수정] 추가
+    @NoArgsConstructor // [수정] 추가
+    @AllArgsConstructor // [수정] 추가
     public static class UpdateRequestCat {
         private String name;
         private String breed;
@@ -38,4 +37,5 @@ public class CatDTO {
         private HealthStatus healthStatus;
         private String aiDataFile;
     }
+
 }

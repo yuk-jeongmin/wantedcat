@@ -76,6 +76,7 @@ import {
   filterAndSortData,
   getCounts,
 } from "./utils/dataFilters";
+
 axios.defaults.withCredentials = true;
 const VITE_API_URL = import.meta.env.VITE_API_URL;
 
@@ -255,7 +256,6 @@ const MainContent = ({
     }
     if (currentMenu === "management") {
       if (currentManagement === "cats") {
-        // return <CatManagement cats={cats} onAddCat={() => setShowAddCatForm(true)} onEditCat={handleEditClick} onDeleteCat={handleDeleteCat} />;
         return <CatManagement
         cats = {cats}
         onAddCat={() => setShowAddCatForm(true)}
@@ -309,7 +309,6 @@ const MainContent = ({
               <div className="p-6">
                 {viewMode === "card" ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"> {/* 반응형 그리드 적용 */}
-                    {/* [수정] map 내부 로직 수정 */}
                     {filteredData.map((item: any) => {
                       if (currentBoard === "info") {
                         return <PostCard key={item.id} post={item as Post} onClick={() => handleItemClick(item)} canEdit={canEditItem(currentUser, item.author)} canDelete={canDeleteItem(currentUser, item.author)} onEdit={() => handleEditClick(item)} onDelete={() => handleDeletePost(item.id)} />;
@@ -320,7 +319,7 @@ const MainContent = ({
                       if (currentBoard === "notice") {
                         return <NoticeCard key={item.id} notice={item as Notice} onClick={() => handleItemClick(item)} canEdit={canEditItem(currentUser, item.author)} canDelete={canDeleteItem(currentUser, item.author)} onEdit={() => handleEditClick(item)} onDelete={() => handleDeleteNotice(item.id)} />;
                       }
-                      return null; // 아무 보드에도 해당하지 않을 경우
+                      return null;
                     })}
                   </div>
                 ) : (
@@ -351,11 +350,9 @@ const MainContent = ({
   )
 }
 
-
-
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [currentUser, setCurrentUser] = useState<UserData | null>(mockUsers[1]); //<- null
+  const [currentUser, setCurrentUser] = useState<UserData | null>(mockUsers[1]);
   const [authPage, setAuthPage] = useState<AuthPage>("login");
   const [currentMenu, setCurrentMenu] = useState<MenuType>("dashboard");
   const [currentManagement, setCurrentManagement] = useState<ManagementType>("cats");
@@ -371,7 +368,7 @@ export default function App() {
   const [cats, setCats] = useState<Cat[]>([]);
   const [showAddCatForm, setShowAddCatForm] = useState(false);
   const [editingCat, setEditingCat] = useState<Cat | null>(null);
-  const [devices, setDevices] = useState<Device[]>([]); // 초기값 빈 배열로 변경
+  const [devices, setDevices] = useState<Device[]>([]);
   const [showAddDeviceForm, setShowAddDeviceForm] = useState(false);
   const [editingDevice, setEditingDevice] = useState<Device | null>(null);
   const [posts, setPosts] = useState<Post[]>(initialPosts);
@@ -384,25 +381,23 @@ export default function App() {
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
   const [selectedMonitoringCats, setSelectedMonitoringCats] = useState<number[]>([]);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // 사이드바 열림/닫힘 상태
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  // 화면 크기에 따라 사이드바 초기 상태 설정 및 리사이즈 이벤트 리스너 추가
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) { // md breakpoint (태블릿 이상)
+      if (window.innerWidth >= 768) {
         setIsSidebarOpen(true);
-      } else { // 모바일
+      } else {
         setIsSidebarOpen(false);
       }
     };
     
     window.addEventListener('resize', handleResize);
-    handleResize(); // 초기 로드 시 실행
+    handleResize();
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
-        // 사용자가 로그인된 상태일 때만 데이터를 가져옵니다.
         if (isAuthenticated) {
             const fetchDevices = async () => {
                 try {
@@ -422,7 +417,6 @@ export default function App() {
     }, [isAuthenticated]);
 
     useEffect(() => {
-        // 사용자가 로그인된 상태일 때만 데이터를 가져옵니다.
         if (isAuthenticated) {
             const fetchCats = async () => {
                 try {
@@ -454,15 +448,12 @@ export default function App() {
 
 const handleLoginAttempt = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Spring Security의 formLogin이 처리하도록 설정한 엔드포인트로 요청
       const params = new URLSearchParams();
         params.append('email', email);
         params.append('password', password);
         const response = await axios.post(`${VITE_API_URL}/api/user/login`, params);
 
         if (response.status === 200) {
-            // 로그인 성공 후 '내 정보'를 가져오는 로직은 withCredentials 옵션이 필요할 수 있습니다.
-            // 세션 쿠키를 주고받기 위함입니다.
             const userResponse = await axios.get(`${VITE_API_URL}/api/user/me`, {
                 withCredentials: true 
             });
@@ -513,18 +504,24 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
     setCurrentMenu("dashboard");
   };
 
-  const handleCreatePost = (postData: Omit<Post, "id" | "views" | "likes" | "comments" | "createdAt">) => {
-    const newPost: Post = {
-      ...postData,
-      author: currentUser?.username || postData.author,
-      id: posts.length > 0 ? Math.max(...posts.map((p) => p.id)) + 1 : 1,
-      createdAt: new Date().toISOString(),
-      views: 0,
-      likes: 0,
-      comments: 0,
-    };
-    setPosts((prev) => [newPost, ...prev]);
-    setShowCreateForm(false);
+  // [수정됨] 게시판 글 생성 함수 (API 연동 예시)
+  const handleCreatePost = async (postData: Omit<Post, "id" | "views" | "likes" | "comments" | "createdAt">) => {
+    try {
+      const payload = {
+        ...postData,
+        author: currentUser?.username || postData.author,
+      };
+      const response = await axios.post(`${VITE_API_URL}/api/posts`, payload, { withCredentials: true });
+      
+      if (response.status === 201) {
+        const newPost = response.data;
+        setPosts((prev) => [newPost, ...prev]);
+        setShowCreateForm(false);
+      }
+    } catch (error) {
+      console.error("Failed to create post:", error);
+      alert("게시글 생성에 실패했습니다.");
+    }
   };
 
   const handleCreateQuestion = (questionData: Omit<Question, "id" | "views" | "status" | "answers" | "createdAt">) => {
@@ -598,74 +595,46 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
     }
   };
 
-  const handleAddCat =async (catData: Omit<Cat, "id" | "lastCheckup">) => {
-    const newCat: Cat = {
-      ...catData,
-      id: cats.length > 0 ? Math.max(...cats.map((c) => c.id)) + 1 : 1,
-      lastCheckup: new Date().toISOString().split("T")[0],
-    };
-    setCats((prev) => [newCat, ...prev]);
-    setShowAddCatForm(false);
+  // [수정됨] 고양이 추가: API 요청 후 상태 업데이트 (안전한 방식)
+  const handleAddCat = async (catData: Omit<Cat, "id" | "lastCheckup">) => {
+    try {
+      const payload = {
+        name: catData.name,
+        breed: catData.breed,
+        gender: catData.gender,
+        age: Number(catData.age),
+        weight: Number(catData.weight),
+        healthStatus: catData.healthStatus,
+        memo: catData.memo,
+        image: catData.image,
+        aiDataFile: ""
+      };
 
-    console.log({
-    name: catData.name,
-    breed: catData.breed,
-    gender: catData.gender,
-    age: Number(catData.age),      // 문자열 → 숫자 변환
-    weight: Number(catData.weight),// 문자열 → 숫자 변환
-    healthStatus: '건강', // enum 매칭 (예: "HEALTHY")
-    memo: catData.memo,
-    image: catData.image,
-    aiDataFile: "" // 필요 없으면 빈 값
-  })
+      const response = await axios.post(`${VITE_API_URL}/api/cats`, payload, { withCredentials: true });
 
-        try {
-      // 백엔드 API에 장치 추가 요청
-      const response = await axios.post(`${VITE_API_URL}/api/cats`,{
-        /**
-  "name": "나비",
-  "breed": "코리안 숏헤어",
-  "gender": "암컷",
-  "age": 5,
-  "image": "https://example.com/navi.jpg",
-  "memo": "겁이 많지만 애교가 많음",
-  "weight": 4.5,
-  "healthStatus": "건강",
-  "aiDataFile": "path/to/data.zip"
-   */
-  name: catData.name,
-    breed: catData.breed,
-    gender: catData.gender,
-    age: Number(catData.age),      // 문자열 → 숫자 변환
-    weight: Number(catData.weight),// 문자열 → 숫자 변환
-    healthStatus: String(catData.healthStatus), // enum 매칭 (예: "HEALTHY")
-    memo: catData.memo,
-    image: catData.image,
-    aiDataFile: "" // 필요 없으면 빈 값
-});
-console.log(response.data)
+      if (response.status === 201) {
+        const newCat = response.data;
+        setCats((prev) => [newCat, ...prev]);
+        setShowAddCatForm(false);
+      }
     } catch (error) {
       console.error("Failed to add cat:", error);
-      alert("cat 추가에 실패했습니다.");
+      alert("고양이 추가에 실패했습니다.");
     }
   };
 
-  // const handleEditCat = (cat: Cat) => {
-  //   setEditingCat(cat);
-  //   setShowAddCatForm(true);
-  // };
-
+  // [수정됨] 고양이 수정: API 요청 후 상태 업데이트 (안전한 방식)
   const handleUpdateCat = async (catData: Omit<Cat, "id" | "lastCheckup">) => {
     if (editingCat) {
       try {
-        // 1. 백엔드에 수정 요청 (PUT)
         const response = await axios.put(`${VITE_API_URL}/api/cats/${editingCat.id}`, catData, {
           withCredentials: true,
         });
-        // alert("1");
+        
+        const updatedCat = response.data;
         setCats((prev) => 
           prev.map((cat) => 
-            cat.id === editingCat.id ? response.data : cat
+            cat.id === editingCat.id ? updatedCat : cat
           )
         );
 
@@ -674,30 +643,19 @@ console.log(response.data)
       } catch (error) {
         console.error("Failed to update cat:", error);
         alert("고양이 정보 수정에 실패했습니다.");
-        /**
-      setCats((prev) => prev.map((cat) => cat.id === editingCat.id ? { ...cat, ...catData } : cat));
-      setEditingCat(null);
-      setShowAddCatForm(false);
-       */
       }
     }
   };
-
-  // const handleDeleteCat = async(catId: number) => {
-  //   if (window.confirm("정말 삭제하시겠습니까?")) {
-  //     setCats((prev) => prev.filter((cat) => cat.id !== catId));
-  //   }
-  // };
-    const handleDeleteCat = async (catId: number) => {
+  
+  // [수정됨] 고양이 삭제: API 요청 후 상태 업데이트 (안전한 방식)
+  const handleDeleteCat = async (catId: number) => {
     if (window.confirm("정말 이 고양이를 삭제하시겠습니까?")) {
       try {
-        // 1. 백엔드에 삭제 요청 (DELETE)
         await axios.delete(`${VITE_API_URL}/api/cats/${catId}`, {
           withCredentials: true,
         });
 
-        // 2. 성공 시, 화면(state)에서 해당 고양이 제거
-        setCats((prev) => prev.filter((cat) =>  cat.id !== catId));
+        setCats((prev) => prev.filter((cat) => cat.id !== catId));
       } catch (error) {
         console.error("Failed to delete cat:", error);
         alert("고양이 삭제에 실패했습니다.");
@@ -705,19 +663,16 @@ console.log(response.data)
     }
   };
 
-  // [수정] 장치 추가 핸들러 (API 연동)
   const handleAddDevice = async (deviceData: Omit<Device, "id">) => {
     try {
-      // 백엔드 API에 장치 추가 요청
       const response = await axios.post(`${VITE_API_URL}/api/devices`, deviceData, {
-        withCredentials: true, // 인증된 요청을 위해 쿠키 포함
+        withCredentials: true,
       });
 
       if (response.status === 201) {
-        // 성공적으로 추가되면 서버로부터 받은 장치 정보를 상태에 추가
         const newDevice = response.data;
         setDevices((prev) => [newDevice, ...prev]);
-        setShowAddDeviceForm(false); // 폼 닫기
+        setShowAddDeviceForm(false);
       }
     } catch (error) {
       console.error("Failed to add device:", error);
@@ -725,20 +680,13 @@ console.log(response.data)
     }
   };
 
-  // const handleEditDevice = (device: Device) => {
-  //   setEditingDevice(device);
-  //   setShowAddDeviceForm(true);
-  // };
-
-const handleUpdateDevice = async (deviceData: Omit<Device, "id" | "lastConnected">) => {
+  const handleUpdateDevice = async (deviceData: Omit<Device, "id" | "lastConnected">) => {
     if (editingDevice) {
       try {
-        // 1. 백엔드에 수정 요청 (PUT)
         const response = await axios.put(`${VITE_API_URL}/api/devices/${editingDevice.id}`, deviceData, {
           withCredentials: true,
         });
 
-        // 2. 성공 시, 응답받은 데이터로 화면(state) 업데이트
         setDevices((prev) => 
           prev.map((device) => 
             device.id === editingDevice.id ? response.data : device
@@ -757,12 +705,10 @@ const handleUpdateDevice = async (deviceData: Omit<Device, "id" | "lastConnected
   const handleDeleteDevice = async (deviceId: number) => {
     if (window.confirm("정말 이 장치를 삭제하시겠습니까?")) {
       try {
-        // 1. 백엔드에 삭제 요청 (DELETE)
         await axios.delete(`${VITE_API_URL}/api/devices/${deviceId}`, {
           withCredentials: true,
         });
 
-        // 2. 성공 시, 화면(state)에서 해당 장치 제거
         setDevices((prev) => prev.filter((device) => device.id !== deviceId));
       } catch (error) {
         console.error("Failed to delete device:", error);
@@ -788,7 +734,6 @@ const handleUpdateDevice = async (deviceData: Omit<Device, "id" | "lastConnected
   };
 
 const handleEditClick = (item: any) => {
-  // 1) 관리 메뉴일 때 우선 처리
   if (currentMenu === "management") {
     if (currentManagement === "cats") {
       setEditingCat(item);
@@ -802,7 +747,6 @@ const handleEditClick = (item: any) => {
     }
   }
 
-  // 2) 게시판 메뉴는 그 다음
   if (currentMenu === "board") {
     if (currentBoard === "info") {
       setEditingPost(item);
@@ -984,7 +928,6 @@ const handleEditClick = (item: any) => {
       {showAddDeviceForm && (<AddDeviceForm onClose={() => { setShowAddDeviceForm(false); setEditingDevice(null); }} onSubmit={editingDevice ? handleUpdateDevice : handleAddDevice} editingDevice={editingDevice} streamKey={currentUser?.streamKey}/>)}
       
       {/* --- 상세 보기 모달 --- */}
-      {/* [수정 완료] PostDetail 컴포넌트에 'post' 대신 'item' prop을 전달하도록 수정 */}
       {selectedPost && (
         <PostDetail
           item={posts.find((p) => p.id === selectedPost.id) || selectedPost}
@@ -996,7 +939,6 @@ const handleEditClick = (item: any) => {
         />
       )}
       
-      {/* [수정 완료] Q&A 상세 보기를 PostDetail 컴포넌트를 재사용하여 모달로 구현 */}
       {selectedQuestion && (
         <PostDetail
           item={questions.find((q) => q.id === selectedQuestion.id) || selectedQuestion}
@@ -1008,7 +950,6 @@ const handleEditClick = (item: any) => {
         />
       )}
 
-      {/* [수정 완료] NoticeDetail을 모달로 구현 */}
       {selectedNotice && (
         <NoticeDetail
           notice={notices.find((n) => n.id === selectedNotice.id) || selectedNotice}
