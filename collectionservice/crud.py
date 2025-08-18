@@ -21,3 +21,16 @@ def get_user(db: Session, user_id: int):
 
 def get_user_by_username(db: Session, username: str):
     return db.query(models.User).filter(models.User.username == username).first()
+
+############################################ AI 관련 ################################################
+def create_aimodel(db: Session, ai: schemas.AimodelCreate):
+    db_aimodel = models.Aimodel(**ai.dict())
+
+    db.add(db_aimodel)
+    db.commit()
+    db.refresh(db_aimodel)
+
+    return db_aimodel
+
+
+#####################################################################################################

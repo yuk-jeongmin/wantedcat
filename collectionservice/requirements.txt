@@ -5,3 +5,5 @@ pydantic
 python-dotenv
 sqlalchemy
 pymysql
+httpie
+httpx
