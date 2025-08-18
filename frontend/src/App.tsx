@@ -57,7 +57,6 @@ import type {
   Device,
 } from "./types";
 import { mockUsers } from "./data/mockUsers";
-import { initialCats } from "./data/mockCats";
 import { initialPosts } from "./data/mockPosts";
 import { initialQuestions } from "./data/mockQuestions";
 import { initialNotices } from "./data/mockNotices";
@@ -107,10 +106,6 @@ const Sidebar = ({
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Avatar className="w-10 h-10">
-              <ImageWithFallback src={currentUser?.profileImage || ""} alt="사용자 프로필" className="w-full h-full object-cover" />
-              <AvatarFallback className="bg-primary text-primary-foreground text-sm">{currentUser?.username?.charAt(0) || "U"}</AvatarFallback>
-            </Avatar>
             <div className="text-left">
               <div className="font-semibold">{currentUser?.username}</div>
               <div className="text-xs text-muted-foreground">{currentUser?.email}</div>
@@ -524,31 +519,45 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
     }
   };
 
-  const handleCreateQuestion = (questionData: Omit<Question, "id" | "views" | "status" | "answers" | "createdAt">) => {
-    const newQuestion: Question = {
+ const handleCreateQuestion = async (questionData: Omit<Question, "id" | "views" | "status" | "answers" | "createdAt">) => {
+  try {
+    const payload = {
       ...questionData,
       author: currentUser?.username || questionData.author,
-      id: questions.length > 0 ? Math.max(...questions.map((q) => q.id)) + 1 : 1,
-      createdAt: new Date().toISOString(),
-      status: "접수",
-      views: 0,
-      answers: [],
     };
-    setQuestions((prev) => [newQuestion, ...prev]);
-    setShowCreateForm(false);
-  };
+    // 백엔드의 Q&A 생성 API 엔드포인트로 요청합니다. (엔드포인트는 실제 API에 맞게 조정해야 할 수 있습니다.)
+    const response = await axios.post(`${VITE_API_URL}/api/questions`, payload, { withCredentials: true });
 
-  const handleCreateNotice = (noticeData: Omit<Notice, "id" | "views" | "createdAt">) => {
-    const newNotice: Notice = {
+    if (response.status === 201) {
+      const newQuestion = response.data; // 서버로부터 받은 데이터 사용
+      setQuestions((prev) => [newQuestion, ...prev]);
+      setShowCreateForm(false);
+    }
+  } catch (error) {
+    console.error("Failed to create question:", error);
+    alert("질문 생성에 실패했습니다.");
+  }
+};
+
+// [수정됨] 공지사항 생성 함수 (API 연동)
+const handleCreateNotice = async (noticeData: Omit<Notice, "id" | "views" | "createdAt">) => {
+  try {
+    const payload = {
       ...noticeData,
       author: currentUser?.username || noticeData.author,
-      id: notices.length > 0 ? Math.max(...notices.map((n) => n.id)) + 1 : 1,
-      createdAt: new Date().toISOString(),
-      views: 0,
     };
-    setNotices((prev) => [newNotice, ...prev]);
-    setShowCreateForm(false);
-  };
+    const response = await axios.post(`${VITE_API_URL}/api/notices`, payload, { withCredentials: true });
+
+    if (response.status === 201) {
+      const newNotice = response.data; // 서버로부터 받은 데이터 사용
+      setNotices((prev) => [newNotice, ...prev]);
+      setShowCreateForm(false);
+    }
+  } catch (error) {
+    console.error("Failed to create notice:", error);
+    alert("공지사항 생성에 실패했습니다.");
+  }
+};
 
   const handleEditPost = (postData: Omit<Post, "id" | "views" | "likes" | "comments" | "createdAt">) => {
     if (editingPost) {

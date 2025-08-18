@@ -22,54 +22,8 @@ interface RegisteredCatsProps {
   onGoToCatManagement?: () => void;
 }
 
-const mockCats: Cat[] = [
-  {
-    id: 1,
-    name: "나비",
-    breed: "러시안블루",
-    age: "3년 2개월",
-    weight: "4.2kg",
-    gender: "female",
-    healthStatus: "healthy",
-    lastCheckup: "2025-01-15",
-    notes: "활발하고 건강한 상태"
-  },
-  {
-    id: 2,
-    name: "택시",
-    breed: "페르시안",
-    age: "2년 8개월",
-    weight: "3.8kg", 
-    gender: "male",
-    healthStatus: "caution",
-    lastCheckup: "2025-01-10",
-    notes: "최근 식욕부진 증상"
-  },
-  {
-    id: 3,
-    name: "김치",
-    breed: "아메리칸숏헤어",
-    age: "1년 6개월",
-    weight: "3.2kg",
-    gender: "female", 
-    healthStatus: "healthy",
-    lastCheckup: "2025-01-18",
-    notes: "예방접종 완료"
-  },
-  {
-    id: 4,
-    name: "털볼이",
-    breed: "메인쿤",
-    age: "4년 1개월",
-    weight: "5.8kg",
-    gender: "male",
-    healthStatus: "sick",
-    lastCheckup: "2025-01-20",
-    notes: "정기 치료 중"
-  }
-];
 
-export function RegisteredCats({ cats = mockCats, onGoToCatManagement }: RegisteredCatsProps) {
+export function RegisteredCats({ cats = [], onGoToCatManagement }: RegisteredCatsProps) {
   const healthyCats = cats.filter(cat => cat.healthStatus === 'healthy').length;
   const totalCats = cats.length;
 
