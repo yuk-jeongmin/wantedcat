@@ -16,7 +16,7 @@ export interface Cat {
   lastCheckup: string;
   image?: string;
   notes?: string;
-  specialNotes?: string;
+  memo?: string;
   // 새로 추가된 필드들
   dailyWaterIntake?: number; // ml 단위
   dailyFoodIntake?: number; // g 단위
@@ -213,9 +213,9 @@ export function CatManagement({ cats, onAddCat, onEditCat, onDeleteCat }: CatMan
                     </div>
                   </div>
 
-                  {cat.specialNotes && (
+                  {cat.memo && (
                     <div className="text-xs text-muted-foreground bg-gray-50 p-2 rounded">
-                      {cat.specialNotes}
+                      {cat.memo}
                     </div>
                   )}
 

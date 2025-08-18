@@ -1,5 +1,7 @@
 import type { UserData } from '../types';
-const API_BASE_URL = 'https://8080-ksyeoni-wantedcat-24hpgr91bbc.ws-us121.gitpod.io';
+
+const API_BASE_URL = '자신의 back(spring-boot) gidpod 주소';
+
 
 export const handleLogin = async (email: string, password: string): Promise<UserData | null> => {
   try {

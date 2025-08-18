@@ -40,4 +40,11 @@ public class Device {
         this.location = location;
         this.user = user; // 빌더에 user 추가
     }
+
+    public void update(String devicename, String type, String wifiName, String location) {
+        this.devicename = devicename;
+        this.type = type;
+        this.wifiName = wifiName;
+        this.location = location;
+    }
 }
