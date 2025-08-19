@@ -396,7 +396,7 @@ export default function App() {
         if (isAuthenticated) {
             const fetchDevices = async () => {
                 try {
-                    const response = await axios.get(`${VITE_API_URL}/api/devices`, {
+                    const response = await axios.get(`/api/devices`, {
                         withCredentials: true,
                     });
                     if (response.status === 200) {
@@ -415,7 +415,7 @@ export default function App() {
         if (isAuthenticated) {
             const fetchCats = async () => {
                 try {
-                    const response = await axios.get(`${VITE_API_URL}/api/cats`, {
+                    const response = await axios.get(`/api/cats`, {
                         withCredentials: true,
                     });
                     if (response.status === 200) {
@@ -446,10 +446,10 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
       const params = new URLSearchParams();
         params.append('email', email);
         params.append('password', password);
-        const response = await axios.post(`${VITE_API_URL}/api/user/login`, params);
+        const response = await axios.post(`/api/user/login`, params);
 
         if (response.status === 200) {
-            const userResponse = await axios.get(`${VITE_API_URL}/api/user/me`, {
+            const userResponse = await axios.get(`/api/user/me`, {
                 withCredentials: true 
             });
             setCurrentUser(userResponse.data);
@@ -472,7 +472,7 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
   }): Promise<{ success: boolean; message?: string }> => {
     try {
       const response = await axios.post(
-        `${VITE_API_URL}/api/user/signup`, 
+        `/api/user/signup`, 
         userData
       );
 
@@ -506,7 +506,7 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
         ...postData,
         author: currentUser?.username || postData.author,
       };
-      const response = await axios.post(`${VITE_API_URL}/api/posts`, payload, { withCredentials: true });
+      const response = await axios.post(`/api/posts`, payload, { withCredentials: true });
       
       if (response.status === 201) {
         const newPost = response.data;
@@ -526,7 +526,7 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
       author: currentUser?.username || questionData.author,
     };
     // 백엔드의 Q&A 생성 API 엔드포인트로 요청합니다. (엔드포인트는 실제 API에 맞게 조정해야 할 수 있습니다.)
-    const response = await axios.post(`${VITE_API_URL}/api/questions`, payload, { withCredentials: true });
+    const response = await axios.post(`/api/questions`, payload, { withCredentials: true });
 
     if (response.status === 201) {
       const newQuestion = response.data; // 서버로부터 받은 데이터 사용
@@ -546,7 +546,7 @@ const handleCreateNotice = async (noticeData: Omit<Notice, "id" | "views" | "cre
       ...noticeData,
       author: currentUser?.username || noticeData.author,
     };
-    const response = await axios.post(`${VITE_API_URL}/api/notices`, payload, { withCredentials: true });
+    const response = await axios.post(`/api/notices`, payload, { withCredentials: true });
 
     if (response.status === 201) {
       const newNotice = response.data; // 서버로부터 받은 데이터 사용
@@ -619,7 +619,7 @@ const handleCreateNotice = async (noticeData: Omit<Notice, "id" | "views" | "cre
         aiDataFile: ""
       };
 
-      const response = await axios.post(`${VITE_API_URL}/api/cats`, payload, { withCredentials: true });
+      const response = await axios.post(`/api/cats`, payload, { withCredentials: true });
 
       if (response.status === 201) {
         const newCat = response.data;
@@ -636,7 +636,7 @@ const handleCreateNotice = async (noticeData: Omit<Notice, "id" | "views" | "cre
   const handleUpdateCat = async (catData: Omit<Cat, "id" | "lastCheckup">) => {
     if (editingCat) {
       try {
-        const response = await axios.put(`${VITE_API_URL}/api/cats/${editingCat.id}`, catData, {
+        const response = await axios.put(`/api/cats/${editingCat.id}`, catData, {
           withCredentials: true,
         });
         
@@ -660,7 +660,7 @@ const handleCreateNotice = async (noticeData: Omit<Notice, "id" | "views" | "cre
   const handleDeleteCat = async (catId: number) => {
     if (window.confirm("정말 이 고양이를 삭제하시겠습니까?")) {
       try {
-        await axios.delete(`${VITE_API_URL}/api/cats/${catId}`, {
+        await axios.delete(`/api/cats/${catId}`, {
           withCredentials: true,
         });
 
@@ -674,7 +674,7 @@ const handleCreateNotice = async (noticeData: Omit<Notice, "id" | "views" | "cre
 
   const handleAddDevice = async (deviceData: Omit<Device, "id">) => {
     try {
-      const response = await axios.post(`${VITE_API_URL}/api/devices`, deviceData, {
+      const response = await axios.post(`/api/devices`, deviceData, {
         withCredentials: true,
       });
 
@@ -692,7 +692,7 @@ const handleCreateNotice = async (noticeData: Omit<Notice, "id" | "views" | "cre
   const handleUpdateDevice = async (deviceData: Omit<Device, "id" | "lastConnected">) => {
     if (editingDevice) {
       try {
-        const response = await axios.put(`${VITE_API_URL}/api/devices/${editingDevice.id}`, deviceData, {
+        const response = await axios.put(`/api/devices/${editingDevice.id}`, deviceData, {
           withCredentials: true,
         });
 
@@ -714,7 +714,7 @@ const handleCreateNotice = async (noticeData: Omit<Notice, "id" | "views" | "cre
   const handleDeleteDevice = async (deviceId: number) => {
     if (window.confirm("정말 이 장치를 삭제하시겠습니까?")) {
       try {
-        await axios.delete(`${VITE_API_URL}/api/devices/${deviceId}`, {
+        await axios.delete(`/api/devices/${deviceId}`, {
           withCredentials: true,
         });
 
