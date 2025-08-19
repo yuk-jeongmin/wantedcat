@@ -57,9 +57,9 @@ import type {
   Device,
 } from "./types";
 import { mockUsers } from "./data/mockUsers";
-import { initialPosts } from "./data/mockPosts";
-import { initialQuestions } from "./data/mockQuestions";
-import { initialNotices } from "./data/mockNotices";
+// import { initialPosts } from "./data/mockPosts";
+// import { initialQuestions } from "./data/mockQuestions";
+// import { initialNotices } from "./data/mockNotices";
 import {
   canEditItem,
   canDeleteItem,
@@ -346,8 +346,8 @@ const MainContent = ({
 }
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [currentUser, setCurrentUser] = useState<UserData | null>(mockUsers[1]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserData | null>(null);
   const [authPage, setAuthPage] = useState<AuthPage>("login");
   const [currentMenu, setCurrentMenu] = useState<MenuType>("dashboard");
   const [currentManagement, setCurrentManagement] = useState<ManagementType>("cats");
@@ -366,9 +366,9 @@ export default function App() {
   const [devices, setDevices] = useState<Device[]>([]);
   const [showAddDeviceForm, setShowAddDeviceForm] = useState(false);
   const [editingDevice, setEditingDevice] = useState<Device | null>(null);
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [questions, setQuestions] = useState<Question[]>(initialQuestions);
-  const [notices, setNotices] = useState<Notice[]>(initialNotices);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
