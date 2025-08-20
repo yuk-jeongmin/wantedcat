@@ -23,50 +23,47 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable()) // CSRF 보호 비활성화
+    http
+        .cors(c -> c.configurationSource(corsConfigurationSource()))
+        .csrf(csrf -> csrf.disable())
 
-                // 🔐 스프링 시큐리티가 제공하는 formLogin 기능 사용
-                .formLogin(form -> form
-                        .loginProcessingUrl("/api/user/login") // 로그인 요청을 처리할 URL
-                        .usernameParameter("email") // [핵심] 로그인 ID로 email 파라미터를 사용하도록 설정
-                        .passwordParameter("password") // 로그인 시 비밀번호로 사용할 파라미터 이름
-                        .permitAll()
+        .exceptionHandling(e -> e
+            .authenticationEntryPoint((req, res, ex) -> {
+                res.setStatus(401);      // ★ 미인증은 401
+                res.setContentType("application/json;charset=UTF-8");
+                res.getWriter().write("{\"error\":\"unauthorized\"}");
+            })
+        )
 
-                        // 로그인 성공 시 처리
-                        .successHandler((request, response, authentication) -> {
-                            response.setStatus(HttpStatus.OK.value());
-                            response.getWriter().write("로그인 성공");
-                        })
-                        // 로그인 실패 시 처리
-                        .failureHandler((request, response, exception) -> {
-                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                            response.getWriter().write("이메일 또는 비밀번호가 올바르지 않습니다.");
-                        })
-                )
+        .formLogin(form -> form
+            .loginProcessingUrl("/api/user/login")
+            .usernameParameter("email")
+            .passwordParameter("password")
+            .successHandler((req, res, auth) -> {
+                res.setStatus(200);
+                res.setContentType("application/json;charset=UTF-8");
+                res.getWriter().write("{\"message\":\"로그인 성공\"}");
+            })
+            .failureHandler((req, res, ex) -> {
+                res.setStatus(401);
+                res.setContentType("application/json;charset=UTF-8");
+                res.getWriter().write("{\"error\":\"이메일 또는 비밀번호가 올바르지 않습니다.\"}");
+            })
+        )
 
-                // 🚪 로그아웃 설정
-                .logout(logout -> logout
-                        .logoutUrl("/api/user/logout") // 로그아웃을 처리할 URL
-                        .logoutSuccessHandler((request, response, authentication) -> {
-                            response.setStatus(HttpStatus.OK.value());
-                        })
-                )
+        .logout(l -> l
+            .logoutUrl("/api/user/logout")
+            .logoutSuccessHandler((req, res, auth) -> res.setStatus(200))
+        )
 
-                // [수정] 🔐 API 경로별 접근 권한 설정
-                .authorizeHttpRequests(auth -> auth
-                        // 아래 API들은 인증 없이 누구나 접근 가능
-                        .requestMatchers("/api/user/signup", "/api/user/login", "/api/user/reset-password").permitAll()
-                        // /api/user/me, /api/user/logout 등 그 외 /api/user/ 경로는 인증 필요
-                        .requestMatchers("/api/user/**").authenticated()
-                        // 나머지 모든 요청은 인증된 사용자만 접근 가능
-                        .anyRequest().authenticated()
-                );
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/api/user/signup", "/api/user/login", "/api/user/reset-password").permitAll()
+            .requestMatchers("/api/user/**").authenticated()
+            .anyRequest().authenticated()
+        );
 
-        return http.build();
-    }
-
+    return http.build();
+}
     // CORS 설정
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

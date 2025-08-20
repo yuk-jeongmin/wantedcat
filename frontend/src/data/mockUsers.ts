@@ -8,7 +8,7 @@ export const mockUsers: UserData[] = [
     profileImage: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face",
     joinDate: "2024-06-15T00:00:00Z",
     role: "user",
-    streamkey: "asdfasdfasdfasdf"
+    streamKey: "asdfasdfasdfasdf"
   },
   {
     id: 2,
@@ -17,6 +17,6 @@ export const mockUsers: UserData[] = [
     profileImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
     joinDate: "2024-01-01T00:00:00Z",
     role: "admin",
-    streamkey: "asdfasdfasdfasdfasdf"
+    streamKey: "asdfasdfasdfasdfasdf"
   }
 ];

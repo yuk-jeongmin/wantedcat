@@ -231,7 +231,7 @@ const MainContent = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
             {/* 대시보드 공지사항 */}
             <div>
-              <DashboardNotices streamKey={currentUser?.streamKey} />
+              <DashboardNotices streamKey={currentUser?.streamKey}  userEmail={currentUser?.email}  />
             </div>
             {/* 고양이 식사량 통계 */}
             <div>
@@ -243,6 +243,7 @@ const MainContent = ({
                 }}
                 selectedCats={selectedMonitoringCats}
                 onCatSelectionChange={setSelectedMonitoringCats}
+                userId={currentUser?.email || ''} 
               />
             </div>
           </div>

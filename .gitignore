@@ -1,2 +1,4 @@
 collectionservice/.env
+backspringboot/src/main/resources/application.properties
 collectionservice/__pycache__/
+.env
