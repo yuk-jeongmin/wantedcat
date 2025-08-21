@@ -19,7 +19,7 @@ export default defineConfig({
             '/api': { target: 'https://8080-ksyeoni-wantedcat-u6pqstrr9l4.ws-us121.gitpod.io', changeOrigin: true }
       ,
       '/hls': {
-        target: 'https://8555-ksyeoni-wantedcat-u6pqstrr9l4.ws-us121.gitpod.io',   // MediaMTX HLS 원본(같은 호스트에서 8555)
+        target: 'https://8555-sjleecatthe-wantedcat-7dxfzhg0f8g.ws-us121.gitpod.io',   // MediaMTX HLS 원본(같은 호스트에서 8555)
         changeOrigin: true,
         secure: false,
         rewrite: (path: string) => path.replace(/^\/hls/, ''), // /hls → /

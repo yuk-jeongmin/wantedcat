@@ -10,12 +10,33 @@ export interface PageResponse<T> {
   size?: number;
 }
 
-export async function listPosts(params?: {
-  page?: number; size?: number; category?: string; q?: string;
-}): Promise<PageResponse<Post>> {
-  const { page = 0, size = 10, category, q } = params ?? {};
-  const res = await api.get('/api/posts', { params: { page, size, category, q } });
-  return res.data;
+function normalizePost(raw: any): Post {
+  return {
+    id: raw.id,
+    title: raw.title,
+    content: raw.content,
+    author: raw.author,
+    createdAt: raw.createdAt ?? raw.created_at,
+    category: raw.category ?? '',
+    views: raw.views ?? 0,
+    likes: raw.likes ?? 0,
+    comments: raw.comments ?? raw.comments_count ?? 0,
+  };
+}
+
+export async function listPosts(params?: { page?: number; size?: number; category?: string; q?: string; }) {
+  const res = await api.get('/api/posts', { params });
+  const data = res.data;
+  if (Array.isArray(data)) {
+    return { content: data.map(normalizePost), totalElements: data.length, totalPages: 1, number: 0, size: params?.size ?? 10 };
+  }
+  return {
+    content: (data.content ?? []).map(normalizePost),
+    totalElements: data.totalElements ?? 0,
+    totalPages: data.totalPages ?? 0,
+    number: data.number ?? 0,
+    size: data.size ?? params?.size ?? 10,
+  };
 }
 
 export async function getPost(id: number): Promise<Post> {
@@ -42,4 +63,25 @@ export async function updatePost(
 // 삭제도 author를 쿼리로 넘김
 export async function deletePost(id: number, author: string): Promise<void> {
   await api.delete(`/api/posts/${id}`, { params: { author } });
+}
+
+export interface PostComment {
+  id: number;
+  author: string;
+  content: string;
+  createdAt: string;
+}
+
+export async function listPostComments(postId: number): Promise<PostComment[]> {
+  const res = await api.get(`/api/posts/${postId}/comments`);
+  return res.data;
+}
+
+export async function addPostComment(postId: number, payload: { author: string; content: string; }): Promise<PostComment> {
+  const res = await api.post(`/api/posts/${postId}/comments`, payload);
+  return res.data;
+}
+
+export async function deletePostComment(postId: number, commentId: number, author?: string): Promise<void> {
+  await api.delete(`/api/posts/${postId}/comments/${commentId}`, { params: { author } });
 }

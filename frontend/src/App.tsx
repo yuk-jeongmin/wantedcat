@@ -39,7 +39,7 @@ import { PostCard } from "./components/PostCard";
 import { PostTable } from "./components/PostTable";
 import { CreatePostForm } from "./components/CreatePostForm";
 import { PostDetail } from "./components/PostDetail";
-import type { Question } from "./components/QuestionForm";
+import type { Answer, Question } from "./components/QuestionForm";
 import { QuestionTable } from "./components/QuestionTable";
 import { QuestionBoard  } from "./components/QuestionBoard";
 import { CreateQuestionForm } from "./components/CreateQuestionForm";
@@ -78,6 +78,44 @@ import {
 
 axios.defaults.withCredentials = true;
 const VITE_API_URL = import.meta.env.VITE_API_URL;
+
+const asArray = <T,>(data: any): T[] => {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.content)) return data.content;
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.items)) return data.items;
+  return [];
+};
+// --- [ADD] CSRF 토큰 & API 헬퍼 ---
+const getCookie = (name: string) =>
+  document.cookie.split("; ").find(r => r.startsWith(name + "="))?.split("=")[1] ?? "";
+
+type Resource = "posts" | "questions" | "notices";
+
+const axiosCfg = () => ({
+  withCredentials: true,
+  headers: { "X-XSRF-TOKEN": getCookie("XSRF-TOKEN") }, // Spring Security 사용 시
+});
+
+// 조회수 +1
+const apiIncrementView = async (resource: Resource, id: number) => {
+  return axios.post(`/api/${resource}/${id}/view`, null, axiosCfg());
+};
+
+// 좋아요/취소 (서버가 POST/DELETE 패턴이라고 가정)
+const apiLike = async (resource: Resource, id: number, like: boolean) => {
+  if (like) return (await axios.post(`/api/${resource}/${id}/like`, null, axiosCfg())).data;
+  return (await axios.delete(`/api/${resource}/${id}/like`, axiosCfg())).data;
+};
+
+// 낙관적 업데이트 유틸
+const optimisticLikeUpdate = <T extends {id:number; likes?:number; likedByMe?:boolean}>(
+  arr: T[], id: number, like: boolean
+) => arr.map(i => i.id === id ? {
+  ...i,
+  likes: Math.max(0, (i.likes ?? 0) + (like ? 1 : -1)),
+  likedByMe: like
+} : i);
 
 // Sidebar 컴포넌트: 사이드 메뉴를 렌더링합니다.
 const Sidebar = ({
@@ -377,6 +415,8 @@ export default function App() {
   const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
   const [selectedMonitoringCats, setSelectedMonitoringCats] = useState<number[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [answers, setAnswers] = useState<Answer[]>([]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -430,8 +470,107 @@ export default function App() {
         }
     }, [isAuthenticated]);
 
-  const currentData = getCurrentData(currentBoard, posts, questions, notices);
+    useEffect(() => {
+        if (isAuthenticated) {
+            const fetchPosts = async () => {
+                try {
+                    const response = await axios.get(`/api/posts`, {
+                        withCredentials: true,
+                    });
+                    if (response.status === 200) {
+                        setPosts(asArray(response.data));
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch posts:", error);
+                }
+            };
+
+            fetchPosts();
+        }
+    }, [isAuthenticated]);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            const fetchNotices = async () => {
+                try {
+                    const response = await axios.get(`/api/notices`, {
+                        withCredentials: true,
+                    });
+                    if (response.status === 200) {
+                        setNotices(asArray(response.data));
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch notices:", error);
+                }
+            };
+
+            fetchNotices();
+        }
+    }, [isAuthenticated]);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            const fetchQustions = async () => {
+                try {
+                    const response = await axios.get(`/api/questions`, {
+                        withCredentials: true,
+                    });
+                    if (response.status === 200) {
+                        setQuestions(asArray(response.data));
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch questions:", error);
+                }
+            };
+
+            fetchQustions();
+        }
+    }, [isAuthenticated]);
+
+    //post 댓글 조회
+    useEffect(() => {
+    
+      const fetchPostComments = async () => {
+          try {
+               if (!selectedPost) { setComments([]); return; }
+              const response = await axios.get(`/api/posts/${selectedPost.id}/comments`, {
+                  withCredentials: true,
+              });
+              if (response.status === 200) {
+                  setComments(asArray(response.data));
+              }
+          } catch (error) {
+              console.error("Failed to fetch comments:", error);
+          }
+      };
+
+      fetchPostComments();
+      },[]);
+
+      //question answer 조회
+      useEffect(() => {
+    
+      const fetchQuestinAnswers = async () => {
+          try {
+              if (!selectedQuestion) { setAnswers([]); return; }
+              const response = await axios.get(`/api/questions/${selectedQuestion.id}/answers`, {
+                  withCredentials: true,
+              });
+              if (response.status === 200) {
+                  setAnswers(asArray(response.data));
+              }
+          } catch (error) {
+              console.error("Failed to fetch answers:", error);
+          }
+      };
+
+      fetchQuestinAnswers();
+      },[]);
+
+  const currentDataRaw = getCurrentData(currentBoard, posts, questions, notices);
+  const currentData = asArray(currentDataRaw);                 // ✅ 항상 배열
   const currentCategories = getCurrentCategories(currentBoard, currentData);
+
 
   const counts = useMemo(() => {
     return getCounts(currentBoard, currentData, currentCategories);
@@ -510,7 +649,7 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
       
       if (response.status === 201) {
         const newPost = response.data;
-        setPosts((prev) => [newPost, ...prev]);
+        setPosts(prev => [newPost, ...(Array.isArray(prev) ? prev : [])]);
         setShowCreateForm(false);
       }
     } catch (error) {
@@ -530,7 +669,7 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
 
     if (response.status === 201) {
       const newQuestion = response.data; // 서버로부터 받은 데이터 사용
-      setQuestions((prev) => [newQuestion, ...prev]);
+      setQuestions(prev => [newQuestion, ...(Array.isArray(prev) ? prev : [])]);
       setShowCreateForm(false);
     }
   } catch (error) {
@@ -540,67 +679,159 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
 };
 
 // [수정됨] 공지사항 생성 함수 (API 연동)
-const handleCreateNotice = async (noticeData: Omit<Notice, "id" | "views" | "createdAt">) => {
-  try {
-    const payload = {
-      ...noticeData,
-      author: currentUser?.username || noticeData.author,
-    };
-    const response = await axios.post(`/api/notices`, payload, { withCredentials: true });
+  const handleCreateNotice = async (noticeData: Omit<Notice, "id" | "views" | "createdAt">) => {
+    try {
+      const payload = {
+        ...noticeData,
+        author: currentUser?.username || noticeData.author,
+      };
+      const response = await axios.post(`/api/notices`, payload, { withCredentials: true });
 
-    if (response.status === 201) {
-      const newNotice = response.data; // 서버로부터 받은 데이터 사용
-      setNotices((prev) => [newNotice, ...prev]);
-      setShowCreateForm(false);
+      if (response.status === 201) {
+        const newNotice = response.data; // 서버로부터 받은 데이터 사용
+        setNotices(prev => [newNotice, ...(Array.isArray(prev) ? prev : [])]);
+        setShowCreateForm(false);
+      }
+    } catch (error) {
+      console.error("Failed to create notice:", error);
+      alert("공지사항 생성에 실패했습니다.");
     }
-  } catch (error) {
-    console.error("Failed to create notice:", error);
-    alert("공지사항 생성에 실패했습니다.");
-  }
-};
+  };
+  const handleEditPost = async (
+    postData: Omit<Post, "id" | "views" | "likes" | "comments" | "createdAt">
+  ) => {
+    if (!editingPost) return;
+    try {
+      const { data } = await axios.put(`/api/posts/${editingPost.id}`, postData, {
+        withCredentials: true,
+      });
 
-  const handleEditPost = (postData: Omit<Post, "id" | "views" | "likes" | "comments" | "createdAt">) => {
-    if (editingPost) {
-      setPosts((prev) => prev.map((post) => post.id === editingPost.id ? { ...post, ...postData } : post));
+      // 서버가 리스트를 돌려줄 수도(예: 갱신된 전체 목록) 있고, 단일 객체를 줄 수도 있음
+      const list = asArray<Post>(data);
+      if (list.length) {
+        // ✅ 리스트가 오면 그대로 교체
+        setPosts(list);
+      } else {
+        // ✅ 단일 객체면 기존 배열에서 해당 항목만 교체
+        setPosts(prev => {
+          const base = Array.isArray(prev) ? prev : asArray<Post>(prev); // 혹시라도 깨졌던 상태 복구
+          return base.map(p => (p.id === editingPost.id ? { ...p, ...data } : p));
+        });
+      }
+
       setEditingPost(null);
       setShowCreateForm(false);
+    } catch (error) {
+      console.error("Failed to update post:", error);
+      alert("게시글 정보 수정에 실패했습니다.");
     }
   };
 
-  const handleEditQuestion = (questionData: Omit<Question, "id" | "views" | "status" | "answers" | "createdAt">) => {
-    if (editingQuestion) {
-      setQuestions((prev) => prev.map((question) => question.id === editingQuestion.id ? { ...question, ...questionData } : question));
+  const handleEditQuestion = async (
+    questionData: Omit<Question, "id" | "views" | "status" | "answers" | "createdAt">
+  ) => {
+    if (!editingQuestion) return;
+    try {
+      const { data } = await axios.put(
+        `/api/questions/${editingQuestion.id}`,
+        questionData,
+        { withCredentials: true }
+      );
+
+      const list = asArray<Question>(data);
+      if (list.length) {
+        // 서버가 목록을 주면 그대로 교체
+        setQuestions(list);
+      } else {
+        // 단일 객체면 해당 항목만 교체
+        setQuestions(prev => {
+          const base = Array.isArray(prev) ? prev : asArray<Question>(prev);
+          return base.map(q => (q.id === editingQuestion.id ? { ...q, ...data } : q));
+        });
+      }
+
       setEditingQuestion(null);
       setShowCreateForm(false);
+    } catch (error) {
+      console.error("Failed to update question:", error);
+      alert("qna 정보 수정에 실패했습니다.");
     }
   };
 
-  const handleEditNotice = (noticeData: Omit<Notice, "id" | "views" | "createdAt">) => {
-    if (editingNotice) {
-      setNotices((prev) => prev.map((notice) => notice.id === editingNotice.id ? { ...notice, ...noticeData } : notice));
+  const handleEditNotice = async (
+    noticeData: Omit<Notice, "id" | "views" | "createdAt">
+  ) => {
+    if (!editingNotice) return;
+    try {
+      const { data } = await axios.put(
+        `/api/notices/${editingNotice.id}`,
+        noticeData,
+        { withCredentials: true }
+      );
+
+      const list = asArray<Notice>(data);
+      if (list.length) {
+        setNotices(list);
+      } else {
+        setNotices(prev => {
+          const base = Array.isArray(prev) ? prev : asArray<Notice>(prev);
+          return base.map(n => (n.id === editingNotice.id ? { ...n, ...data } : n));
+        });
+      }
+
       setEditingNotice(null);
       setShowCreateForm(false);
+    } catch (error) {
+      console.error("Failed to update notice:", error);
+      alert("공지사항 정보 수정에 실패했습니다.");
     }
   };
 
-  const handleDeletePost = (postId: number) => {
+  const handleDeletePost = async (postId: number) => {
     if (window.confirm("정말 이 게시글을 삭제하시겠습니까?")) {
-      setPosts((prev) => prev.filter((post) => post.id !== postId));
-      setSelectedPost(null);
+      try {
+        await axios.delete(`/api/posts/${postId}`, {
+          withCredentials: true,
+        });
+
+        setPosts((prev) => prev.filter((post) => post.id !== postId));
+        setSelectedPost(null);
+      } catch (error) {
+        console.log()
+        console.error("Failed to delete post:", error);
+        alert("게시글 삭제에 실패했습니다.");
+      }
     }
   };
-
-  const handleDeleteQuestion = (questionId: number) => {
+  
+  const handleDeleteQuestion = async (questionId: number) => {
     if (window.confirm("정말 이 질문을 삭제하시겠습니까?")) {
-      setQuestions((prev) => prev.filter((question) => question.id !== questionId));
-      setSelectedQuestion(null);
+      try {
+        await axios.delete(`/api/questions/${questionId}`, {
+          withCredentials: true,
+        });
+
+        setQuestions((prev) => prev.filter((question) => question.id !== questionId));
+        setSelectedQuestion(null);
+      } catch (error) {
+        console.error("Failed to delete question:", error);
+        alert("질문 삭제에 실패했습니다.");
+      }
     }
   };
+  const handleDeleteNotice = async (noticeId: number) => {
+    if (window.confirm("정말 이 질문을 삭제하시겠습니까?")) {
+      try {
+        await axios.delete(`/api/notices/${noticeId}`, {
+          withCredentials: true,
+        });
 
-  const handleDeleteNotice = (noticeId: number) => {
-    if (window.confirm("정말 이 공지사항을 삭제하시겠습니까?")) {
-      setNotices((prev) => prev.filter((notice) => notice.id !== noticeId));
-      setSelectedNotice(null);
+        setNotices((prev) => prev.filter((notice) => notice.id !== noticeId));
+        setSelectedNotice(null);
+      } catch (error) {
+        console.error("Failed to delete notice:", error);
+        alert("공지 삭제에 실패했습니다.");
+      }
     }
   };
 
@@ -726,21 +957,57 @@ const handleCreateNotice = async (noticeData: Omit<Notice, "id" | "views" | "cre
     }
   };
 
-  const handleItemClick = (item: Post | Question | Notice) => {
-    if (currentBoard === "info") {
-      const postItem = item as Post;
-      setPosts((prev) => prev.map((p) => p.id === postItem.id ? { ...p, views: p.views + 1 } : p));
-      setSelectedPost(postItem);
-    } else if (currentBoard === "qna") {
-      const questionItem = item as Question;
-      setQuestions((prev) => prev.map((q) => q.id === questionItem.id ? { ...q, views: q.views + 1 } : q));
-      setSelectedQuestion(questionItem);
-    } else if (currentBoard === "notice") {
-      const noticeItem = item as Notice;
-      setNotices((prev) => prev.map((n) => n.id === noticeItem.id ? { ...n, views: n.views + 1 } : n));
-      setSelectedNotice(noticeItem);
+  // --- [REPLACE] 기존 handleItemClick 전체 교체 ---
+const handleItemClick = async (item: Post | Question | Notice) => {
+  if (currentBoard === "info") {
+    const it = item as Post;
+    // 1) 화면 먼저 증가(낙관적)
+    setPosts(prev => prev.map(p => p.id === it.id ? { ...p, views: (p.views ?? 0) + 1 } : p));
+    setSelectedPost({ ...it, views: (it.views ?? 0) + 1 });
+
+    // 2) 서버 반영
+    try {
+      const { data: updated } = await apiIncrementView("posts", it.id);
+      if (updated) {
+        setPosts(prev => prev.map(p => p.id === it.id ? { ...p, ...updated } : p));
+        setSelectedPost(prev => prev && prev.id === it.id ? { ...prev, ...updated } : prev);
+      }
+    } catch (e) {
+      console.error("increase post views failed", e);
+      // 실패 시 롤백하고 싶으면 아래 사용
+      // setPosts(prev => prev.map(p => p.id === it.id ? { ...p, views: Math.max(0, (p.views ?? 1) - 1) } : p));
     }
-  };
+  } else if (currentBoard === "qna") {
+    const it = item as Question;
+    setQuestions(prev => prev.map(q => q.id === it.id ? { ...q, views: (q.views ?? 0) + 1 } : q));
+    setSelectedQuestion({ ...it, views: (it.views ?? 0) + 1 });
+
+    try {
+      const { data: updated } = await apiIncrementView("questions", it.id);
+      if (updated) {
+        setQuestions(prev => prev.map(q => q.id === it.id ? { ...q, ...updated } : q));
+        setSelectedQuestion(prev => prev && prev.id === it.id ? { ...prev, ...updated } : prev);
+      }
+    } catch (e) {
+      console.error("increase question views failed", e);
+    }
+  } else if (currentBoard === "notice") {
+    const it = item as Notice;
+    setNotices(prev => prev.map(n => n.id === it.id ? { ...n, views: (n.views ?? 0) + 1 } : n));
+    setSelectedNotice({ ...it, views: (it.views ?? 0) + 1 });
+
+    try {
+      const { data: updated } = await apiIncrementView("notices", it.id);
+      if (updated) {
+        setNotices(prev => prev.map(n => n.id === it.id ? { ...n, ...updated } : n));
+        setSelectedNotice(prev => prev && prev.id === it.id ? { ...prev, ...updated } : prev);
+      }
+    } catch (e) {
+      console.error("increase notice views failed", e);
+    }
+  }
+};
+
 
 const handleEditClick = (item: any) => {
   if (currentMenu === "management") {
