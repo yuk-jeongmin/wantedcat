@@ -754,6 +754,7 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
     try {
       const payload = {
         ...noticeData,
+        isPinned : noticeData.pinned,
         author: currentUser?.username || noticeData.author,
       };
       const response = await axios.post(`/api/notices`, payload, { withCredentials: true });
@@ -836,9 +837,19 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
   ) => {
     if (!editingNotice) return;
     try {
+
+        const paramNoticeData = {
+          author : noticeData.author,
+          title : noticeData.title,
+          content : noticeData.content,
+          category : noticeData.category,
+          priority : noticeData.priority,
+          isPinned: noticeData.pinned
+        }
+
       const { data } = await axios.put(
         `/api/notices/${editingNotice.id}`,
-        noticeData,
+        paramNoticeData,
         { withCredentials: true }
       );
 

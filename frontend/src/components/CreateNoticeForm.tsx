@@ -24,7 +24,7 @@ export function CreateNoticeForm({ onClose, onSubmit, editingNotice }: CreateNot
         author: editingNotice.author || "",
         category: editingNotice.category || "",
         priority: editingNotice.priority || "일반" as '일반' | '중요' | '긴급',
-        isPinned: editingNotice.isPinned || (editingNotice as any).pinned || false
+        pinned: editingNotice.pinned || (editingNotice as any).pinned || false
       };
     }
     return {
@@ -33,7 +33,7 @@ export function CreateNoticeForm({ onClose, onSubmit, editingNotice }: CreateNot
       author: "",
       category: "",
       priority: "일반" as '일반' | '중요' | '긴급',
-      isPinned: false
+      pinned: false
     };
   });
 
@@ -42,7 +42,7 @@ export function CreateNoticeForm({ onClose, onSubmit, editingNotice }: CreateNot
     if (editingNotice && editingNotice.id) {
       console.log('Setting form data for editing:', editingNotice); // 디버깅용
       console.log('editingNotice.category:', editingNotice.category); // 카테고리 값 확인
-      console.log('editingNotice.isPinned:', editingNotice.isPinned); // isPinned 확인
+      console.log('editingNotice.pinned:', editingNotice.pinned); // pinned 확인
       console.log('editingNotice.pinned:', (editingNotice as any).pinned); // pinned 필드 확인
       
       const newFormData = {
@@ -51,7 +51,7 @@ export function CreateNoticeForm({ onClose, onSubmit, editingNotice }: CreateNot
         author: editingNotice.author || "",
         category: editingNotice.category || "",
         priority: editingNotice.priority || "일반" as '일반' | '중요' | '긴급',
-        isPinned: editingNotice.isPinned || (editingNotice as any).pinned || false
+        pinned: editingNotice.pinned || (editingNotice as any).pinned || false
       };
       
       // 현재 formData와 다를 때만 업데이트
@@ -70,7 +70,7 @@ export function CreateNoticeForm({ onClose, onSubmit, editingNotice }: CreateNot
         author: "",
         category: "",
         priority: "일반",
-        isPinned: false
+        pinned: false
       });
     }
   }, [editingNotice]);
@@ -179,11 +179,11 @@ export function CreateNoticeForm({ onClose, onSubmit, editingNotice }: CreateNot
 
             <div className="flex items-center space-x-2">
               <Checkbox
-                id="isPinned"
-                checked={formData.isPinned}
-                onCheckedChange={(checked: boolean) => setFormData(prev => ({ ...prev, isPinned: !!checked }))}
+                id="pinned"
+                checked={formData.pinned}
+                onCheckedChange={(checked: boolean) => setFormData(prev => ({ ...prev, pinned: !!checked }))}
               />
-              <Label htmlFor="isPinned">상단 고정</Label>
+              <Label htmlFor="pinned">상단 고정</Label>
             </div>
 
             <div className="space-y-2">
