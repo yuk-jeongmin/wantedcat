@@ -11,8 +11,9 @@ COPY package*.json ./
 # apt-get 패키지 목록을 업데이트하고, openjdk-17-jdk를 설치합니다.
 RUN apt-get update && apt-get install -y openjdk-17-jdk && rm -rf /var/lib/apt/lists/*
 
-# 의존성 설치
-RUN npm install
+# 의존성 설치 (변경-jks: install -> ci)
+#RUN npm install
+RUN npm ci
 
 # 소스 코드 복사
 COPY . .

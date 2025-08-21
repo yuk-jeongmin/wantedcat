@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -20,6 +21,13 @@ import java.util.List;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    // 추가-jks : 보안 무시 목록
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.ignoring()
+                .requestMatchers("/public/**", "/favicon.ico", "/assets/**", "/error");
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -58,6 +66,7 @@ public class SecurityConfig {
 
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/api/user/signup", "/api/user/login", "/api/user/reset-password").permitAll()
+            .requestMatchers("/api/upload/cat-image").permitAll() // 추가-jks : 이미지 업로드 API와 정적리소스는 인증없이 허용(고양이프로필사진)
             .requestMatchers("/api/events/**").authenticated() // /api/events/ 로 시작하는 모든 경로는 인증된 사용자만 허용
             .requestMatchers("/api/user/**").authenticated()
             .anyRequest().authenticated()
