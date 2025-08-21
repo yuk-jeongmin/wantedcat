@@ -23,8 +23,13 @@ public class EventController {
     }
 
     @GetMapping
-    public ResponseEntity<List<EventDto>> getEventsByUserId(@RequestParam String userId) {
-        List<EventDto> events = eventService.getEventsByUserId(userId);
+    public ResponseEntity<List<EventDto>> getEventsByUserId(
+            @RequestParam String userId,
+            // 'date' 파라미터를 LocalDate 타입으로 받도록 추가합니다.
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        
+        // 날짜 필터링을 수행하는 새로운 서비스 메소드를 호출합니다.
+        List<EventDto> events = eventService.getDailyEventsByUserId(userId, date);
         return ResponseEntity.ok(events);
     }
 

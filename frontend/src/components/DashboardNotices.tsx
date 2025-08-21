@@ -8,6 +8,8 @@ import { Play, Pause, Volume2, VolumeX, Maximize, Clock, Utensils } from "lucide
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import Hls from 'hls.js';
 import axios from 'axios';
+import { VideoThumbnail } from './VideoThumbnail';
+
 
 interface EventData {
   id: number;
@@ -22,8 +24,13 @@ interface EventData {
 }
 
 // 고양이 활동 로그 생성
+interface DashboardNoticesProps {
+  streamKey: string | null | undefined;
+  userEmail: string | null;
+  date: string; // 'YYYY-MM-DD' 형식의 날짜 문자열
+}
 
-  export function DashboardNotices({ streamKey, userEmail  }:{ streamKey: string | null | undefined, userEmail: string | null }) {
+export function DashboardNotices({ streamKey, userEmail, date }: DashboardNoticesProps) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [isOriginPlaying, setIsOriginPlaying] = useState<boolean>(false);
@@ -74,7 +81,7 @@ useEffect(() => {
       setError(null);
       try {
         // 백엔드 API 엔드포인트 주소입니다.
-        const response = await fetch(`/api/events?userId=${userEmail}`);
+        const response = await fetch(`/api/events?userId=${userEmail}&date=${date}`);
         if (!response.ok) {
           throw new Error('데이터를 불러오는 데 실패했습니다.');
         }
@@ -88,7 +95,7 @@ useEffect(() => {
     };
 
     fetchActivities();
-  }, [userEmail]);
+  }, [userEmail, date]);
 
 const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -237,10 +244,12 @@ const handleActivityClick = async (activity: EventData) => {
                 >
                   <div className="flex gap-3">
                     {/* Thumbnail: origin_video_url을 사용하거나 별도 썸네일 필드가 필요합니다. */}
-                    <div className="w-16 h-12 bg-gray-200 rounded overflow-hidden flex-shrink-0">
-                      {/* 썸네일 이미지가 별도로 없다면, 일단 플레이스홀더를 사용합니다. */}
-                      {/* <ImageWithFallback src={activity.thumbnail_url} ... /> */}
-                    </div>
+                    {/* <div className="w-16 h-12 bg-gray-200 rounded overflow-hidden flex-shrink-0">
+                      <VideoThumbnail 
+                        videoUrl={modalOriginUrl} // 원본 비디오 URL 전달
+                        altText={`${activity.catName}의 ${activity.eventType} 썸네일`}
+                      />
+                    </div> */}
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">

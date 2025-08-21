@@ -12,14 +12,15 @@ interface CatFeedingStatsProps {
   onGoToCatManagement: () => void;
   selectedCats: number[];
   onCatSelectionChange: (ids: number[]) => void;
-  userId?: string;
+  // App.tsx에서 currentUser.email을 이 prop으로 전달합니다.
+  userId?: string; 
 }
 
 // 백엔드 응답 타입
 type DailyCatStats = {
   catName: string;
-  totalWaterIntake: number; // 현재 백엔드는 durationSeconds 합(초)로 내려줄 가능성 있음
-  totalFoodIntake: number;  // 동일
+  totalWaterIntake: number;
+  totalFoodIntake: number;
 };
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "";
@@ -30,7 +31,7 @@ export function CatFeedingStats({
   onGoToCatManagement,
   selectedCats,
   onCatSelectionChange,
-  userId: userIdProp, 
+  userId: userEmailProp, // prop 이름을 userEmailProp으로 받아 명확하게 함
 }: CatFeedingStatsProps) {
   const [stats, setStats] = useState<Record<string, DailyCatStats>>({});
   const [loading, setLoading] = useState(false);
@@ -38,24 +39,19 @@ export function CatFeedingStats({
 
   // 오늘 날짜(로컬) → YYYY-MM-DD
   const todayStr = useMemo(() => {
-    // 한국 로케일에서 YYYY-MM-DD 를 얻기 위해 en-CA 사용
-    return new Date().toLocaleDateString("en-CA"); // e.g., 2025-08-20
+    return new Date().toLocaleDateString("en-CA"); // e.g., 2025-08-21
   }, []);
 
-  // userId 추적: 앱 로그인 시 저장한 값을 사용 (필요 시 수정)
-  const userId = useMemo(() => {
-    return (
-      userIdProp ||
-      localStorage.getItem("userId") ||
-      localStorage.getItem("email") ||
-      ""
-    );
-  }, [userIdProp]);
+  // [수정] 사용자 식별자를 email로 명확하게 사용
+  const userEmail = useMemo(() => {
+    // 부모 컴포넌트에서 받은 email을 최우선으로 사용
+    return userEmailProp || localStorage.getItem("email") || "";
+  }, [userEmailProp]);
 
   // 이벤트 통계 불러오기
   useEffect(() => {
-    if (!API_BASE_URL || !userId) {
-      // API 또는 userId 없으면 요청하지 않음
+    // [수정] API_BASE_URL 대신 base, userId 대신 userEmail을 확인
+    if (!userEmail) {
       return;
     }
     const controller = new AbortController();
@@ -64,19 +60,21 @@ export function CatFeedingStats({
       setLoading(true);
       setError(null);
       try {
-        const url = `${base}/api/events/stats?userId=${encodeURIComponent(userId)}&date=${todayStr}`;
+        // [수정] API 요청 시 userId 파라미터에 userEmail 값을 전달
+        const url = `/api/events/stats?userId=${encodeURIComponent(userEmail)}&date=${todayStr}`;
+        
+        // [수정] 불필요한 fetch 호출 제거 및 mode: 'cors' 주석 처리 유지
         const res = await fetch(url, {
-            method: 'GET',              // 로그인은 POST
-            credentials: 'include',     // ★ 세션 쿠키 주고/받기
-            mode: 'cors',
+            method: 'GET',
+            credentials: 'include', // 세션 쿠키를 주고받기 위해 필수
             headers: { 'Content-Type': 'application/json' }
         });
+
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
         const data: DailyCatStats[] = await res.json();
 
-        // catName 기준으로 빠른 조회를 위해 map 구성
         const byName: Record<string, DailyCatStats> = {};
         for (const row of data) {
           if (row && row.catName) byName[row.catName] = row;
@@ -93,7 +91,7 @@ export function CatFeedingStats({
 
     fetchDailyStats();
     return () => controller.abort();
-  }, [API_BASE_URL, userId, todayStr]);
+  }, [base, userEmail, todayStr]); // [수정] 의존성 배열 업데이트
 
   // 선택 토글
   const toggleCatSelection = (catId: number) => {
@@ -128,16 +126,32 @@ export function CatFeedingStats({
   }, [cats, stats]);
 
   const getWaterPercentage = (cat: Cat) => {
-    if (!cat.targetWaterIntake) return 0;
-    const today = getTodayWater(cat);
-    return Math.min((today / cat.targetWaterIntake) * 100, 100);
-  };
+  // 1. UI와 동일하게 목표량이 null/undefined이면 기본값 100을 사용
+  const target = cat.targetWaterIntake ?? 100; 
+  const today = getTodayWater(cat);
 
-  const getFoodPercentage = (cat: Cat) => {
-    if (!cat.targetFoodIntake) return 0;
-    const today = getTodayFood(cat);
-    return Math.min((today / cat.targetFoodIntake) * 100, 100);
-  };
+  // 2. 목표량이 0일 경우 0%를 반환 (0으로 나누기 방지)
+  if (target === 0) {
+    return 0;
+  }
+
+  // 3. Math.min을 제거하여 100% 초과 표시 허용
+  return (today / target) * 100;
+};
+
+const getFoodPercentage = (cat: Cat) => {
+  // 1. UI와 동일하게 목표량이 null/undefined이면 기본값 100을 사용
+  const target = cat.targetFoodIntake ?? 100;
+  const today = getTodayFood(cat);
+
+  // 2. 목표량이 0일 경우 0%를 반환 (0으로 나누기 방지)
+  if (target === 0) {
+    return 0;
+  }
+
+  // 3. Math.min을 제거하여 100% 초과 표시 허용
+  return (today / target) * 100;
+};
 
   return (
     <Card className="h-full">
@@ -149,7 +163,7 @@ export function CatFeedingStats({
               음수량 & 식사량 모니터링
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
-              (이벤트 데이터 기준) 고양이별 일일 음수/식사량
+              고양이별 일일 음수/식사량
               {loading ? " 불러오는 중..." : error ? ` 오류: ${error}` : ""}
             </p>
           </div>
@@ -209,6 +223,11 @@ export function CatFeedingStats({
             {/* 개별 상세 */}
             <div>
               <h3 className="text-sm font-medium mb-3">개별 상세 정보</h3>
+              {loading ? (
+                        <div className="text-center py-4">
+                  <p className="text-sm text-muted-foreground">통계 데이터를 불러오는 중...</p>
+                </div>
+              ) :(
               <div className="space-y-4">
                 {selectedCatData.map((cat) => {
                   const todayWater = getTodayWater(cat);
@@ -236,7 +255,7 @@ export function CatFeedingStats({
                         <div>
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-1">
-                              <Droplets className="w-3 h-3 text-blue-600" />
+                              <Droplets className="w-3 h-3 text-[#8EE3CF]" />
                               <span className="text-xs text-muted-foreground">음수량(오늘)</span>
                             </div>
                             <span className="text-xs">
@@ -247,7 +266,7 @@ export function CatFeedingStats({
                           </div>
                           <Progress
                             value={getWaterPercentage(cat)}
-                            className="h-2 bg-slate-200 [&>div]:bg-blue-500"
+                            className="h-2 bg-slate-200 [&>div]:bg-[#8EE3CF]"
                           />
                           <div className="text-xs text-muted-foreground mt-1 text-right">
                             {getWaterPercentage(cat).toFixed(0)}% 달성
@@ -268,7 +287,7 @@ export function CatFeedingStats({
                           </div>
                           <Progress
                             value={getFoodPercentage(cat)}
-                            className="h-2 bg-slate-200 [&>div]:bg-orange-500"
+                            className="h-2 bg-slate-200 [&>div]:bg-[#8EE3CF]"
                           />
                           <div className="text-xs text-muted-foreground mt-1 text-right">
                             {getFoodPercentage(cat).toFixed(0)}% 달성
@@ -279,6 +298,7 @@ export function CatFeedingStats({
                   );
                 })}
               </div>
+              )}
             </div>
           </div>
         ) : (

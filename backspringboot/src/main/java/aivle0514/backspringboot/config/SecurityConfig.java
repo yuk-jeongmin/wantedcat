@@ -58,6 +58,7 @@ public class SecurityConfig {
 
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/api/user/signup", "/api/user/login", "/api/user/reset-password").permitAll()
+            .requestMatchers("/api/events/**").authenticated() // /api/events/ 로 시작하는 모든 경로는 인증된 사용자만 허용
             .requestMatchers("/api/user/**").authenticated()
             .anyRequest().authenticated()
         );

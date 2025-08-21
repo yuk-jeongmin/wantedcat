@@ -44,6 +44,19 @@ public class EventService {
                 .buildClient();
     }
 
+    public List<EventDto> getDailyEventsByUserId(String userId, LocalDate date) {
+        // 해당 날짜의 시작(00:00:00)과 끝(23:59:59) 시간을 계산합니다.
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
+
+        // Repository의 날짜 구간 조회 메소드를 사용하여 이벤트를 가져옵니다.
+        List<Event> events = eventRepository.findByUserIdAndEventTimeBetween(userId, startOfDay, endOfDay);
+
+        // 각 Event 객체를 EventDto 객체로 변환하여 리스트로 반환합니다.
+        return events.stream()
+                .map(EventDto::new)
+                .collect(Collectors.toList());
+    }
     /**
      * 특정 사용자의 모든 이벤트 기록을 조회하여 DTO 리스트로 반환합니다.
      */

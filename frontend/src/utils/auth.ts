@@ -47,11 +47,6 @@ export const handleLogin = async (email: string, password: string): Promise<User
   }
 };
 
-/**
- * 회원가입:
- * - 절대 URL 사용(개발 환경에서 포트 다른 오리진)
- * - (쿠키 필요 없지만) 일관성을 위해 credentials 포함해도 무방
- */
 export const handleSignup = async (userData: {
   email: string;
   username: string;
