@@ -75,9 +75,18 @@ import {
   filterAndSortData,
   getCounts,
 } from "./utils/dataFilters";
+import { Toaster } from "sonner"; // 추가-jks : Toast 알림
+
 
 axios.defaults.withCredentials = true;
 const VITE_API_URL = import.meta.env.VITE_API_URL;
+
+// 추가-jks : 고양이 프로필 사진 (도커 경로 -> 정적 URL 변환)
+const dockerPathToPublicUrl = (p?: string) => {
+  if (!p) return "";
+  // "/app/public/USER/xxx.jpg" → "/public/USER/xxx.jpg"
+  return p.startsWith("/app/") ? p.replace("/app", "") : p;
+};
 
 // Sidebar 컴포넌트: 사이드 메뉴를 렌더링합니다.
 const Sidebar = ({
@@ -257,7 +266,8 @@ const MainContent = ({
         cats = {cats}
         onAddCat={() => setShowAddCatForm(true)}
         onEditCat={handleEditClick}
-        onDeleteCat={handleDeleteCat} />;
+        onDeleteCat={handleDeleteCat} 
+        currentUser={currentUser}/>;
       }
       if (currentManagement === "devices") {
         return <DeviceManagement 
@@ -348,8 +358,12 @@ const MainContent = ({
 }
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
-  const [currentUser, setCurrentUser] = useState<UserData | null>(mockUsers[1]);
+  // 추가-jks : 웹페이지 초기 접속 시, 바로 로그인 창으로 가도록
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserData | null>(null);
+  // 기존 : React의 Mock 데이터를 사용해서 관리자로 접속되있는 상태
+  // const [isAuthenticated, setIsAuthenticated] = useState(true);
+  // const [currentUser, setCurrentUser] = useState<UserData | null>(mockUsers[1]);
   const [authPage, setAuthPage] = useState<AuthPage>("login");
   const [currentMenu, setCurrentMenu] = useState<MenuType>("dashboard");
   const [currentManagement, setCurrentManagement] = useState<ManagementType>("cats");
@@ -432,6 +446,14 @@ export default function App() {
             fetchCats();
         }
     }, [isAuthenticated]);
+  
+  // 추가-jks : 고양이 프로필 사진 (고양이 목록을 화면에 뿌리기 전에 URL로 치환)
+  const catsForRender = useMemo(() => {
+    return (cats || []).map(c => ({
+      ...c,
+      image: dockerPathToPublicUrl(c.image), // 화면에서 사용할 URL로 치환
+    }));
+  }, [cats]);
 
   const currentData = getCurrentData(currentBoard, posts, questions, notices);
   const currentCategories = getCurrentCategories(currentBoard, currentData);
@@ -882,7 +904,7 @@ const handleEditClick = (item: any) => {
               title={getMenuTitle(currentMenu, currentManagement, currentBoard)}
               currentMenu={currentMenu}
               currentManagement={currentManagement}
-              cats={cats}
+              cats={catsForRender} // 변경-jks : cats -> catsForRender : 고양이 프로필 사진(고양이 목록을 화면에 뿌리기 전 URL로 치환)
               handleMenuChange={handleMenuChange}
               setCurrentManagement={setCurrentManagement}
               devices={devices}
@@ -929,6 +951,9 @@ const handleEditClick = (item: any) => {
         <Menu className="h-6 w-6" />
       </button>
 
+      {/* 추가-jks : Toast 알림 */}
+      <Toaster position="top-center" closeButton richColors />
+
       {/* --- 폼 및 모달 --- */}
       
       {/* 글/질문/공지 생성 및 수정 폼 */}
@@ -937,7 +962,14 @@ const handleEditClick = (item: any) => {
       {currentMenu === "board" && showCreateForm && currentBoard === "notice" && canCreateNotice(currentUser) && (<CreateNoticeForm onClose={() => { setShowCreateForm(false); setEditingNotice(null); }} onSubmit={editingNotice ? handleEditNotice : handleCreateNotice} editingNotice={editingNotice} />)}
       
       {/* 고양이/장치 추가 및 수정 폼 */}
-      {showAddCatForm && (<AddCatForm onClose={() => { setShowAddCatForm(false); setEditingCat(null); }} onSubmit={editingCat ? handleUpdateCat : handleAddCat} editingCat={editingCat} />)}
+      {showAddCatForm && (
+        <AddCatForm 
+          onClose={() => { setShowAddCatForm(false); setEditingCat(null); }} 
+          onSubmit={editingCat ? handleUpdateCat : handleAddCat} 
+          editingCat={editingCat} 
+          userId={currentUser?.id ?? currentUser?.email} // 추가-jks : 백엔드에서 사용할 식별자
+        />
+      )}
       {showAddDeviceForm && (<AddDeviceForm onClose={() => { setShowAddDeviceForm(false); setEditingDevice(null); }} onSubmit={editingDevice ? handleUpdateDevice : handleAddDevice} editingDevice={editingDevice} streamKey={currentUser?.streamKey}/>)}
       
       {/* --- 상세 보기 모달 --- */}

@@ -1,6 +1,6 @@
 import type { UserData } from '../types';
 
-const API_BASE_URL = 'https://8080-sjleecatthe-wantedcat-7dxfzhg0f8g.ws-us121.gitpod.io';
+const API_BASE_URL = 'https://8080-storyinstoryj-wantedcat-rjagzvfxvzc.ws-us121.gitpod.io';
 
 /**
  * 로그인: Spring Security formLogin 사용 중이므로
