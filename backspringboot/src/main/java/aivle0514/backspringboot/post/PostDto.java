@@ -44,7 +44,7 @@ public class PostDto {
                 .category(p.getCategory())
                 .views(p.getViews())
                 .likes(p.getLikes())
-                .comments(p.getComments())
+                .comments(p.getPostComments() != null ? p.getPostComments().size() : 0)
                 .createdAt(p.getCreatedAt())
                 .build();
         }

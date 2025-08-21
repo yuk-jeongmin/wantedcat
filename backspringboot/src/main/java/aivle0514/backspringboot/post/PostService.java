@@ -38,7 +38,6 @@ public class PostService {
         p.setCategory(category);
         p.setViews(0);
         p.setLikes(0);
-        p.setComments(0);
         return postRepository.save(p);
     }
 

@@ -30,9 +30,6 @@ public class PostCommentService {
                         .build()
         );
 
-        // 댓글 수 동기화 (posts.comments 컬럼 유지)
-        post.setComments(post.getComments() + 1);
-
         return saved;
     }
 
@@ -49,8 +46,5 @@ public class PostCommentService {
         }
 
         commentRepository.delete(c);
-
-        Post post = c.getPost();
-        post.setComments(Math.max(0, post.getComments() - 1));
     }
 }

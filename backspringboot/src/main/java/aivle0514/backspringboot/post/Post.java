@@ -3,6 +3,8 @@ package aivle0514.backspringboot.post;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.List;
+import aivle0514.backspringboot.post.PostComment;
 
 @Entity
 @Getter      // <-- 추가
@@ -39,9 +41,8 @@ public class Post {
     @Builder.Default
     private int likes = 0;
 
-    @Column(name = "comments", nullable = false)
-    @Builder.Default
-    private int comments = 0;
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<PostComment> postComments;
 
     @PrePersist
     void onCreate() {
