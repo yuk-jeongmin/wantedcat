@@ -2,66 +2,80 @@ import type { UserData } from '../types';
 
 const API_BASE_URL = 'https://8080-sjleecatthe-wantedcat-7dxfzhg0f8g.ws-us121.gitpod.io';
 
-
+/**
+ * 로그인: Spring Security formLogin 사용 중이므로
+ * - Content-Type: application/x-www-form-urlencoded
+ * - credentials: 'include' 로 세션 쿠키 교환
+ */
 export const handleLogin = async (email: string, password: string): Promise<UserData | null> => {
   try {
-    // 1. 백엔드의 /api/user/login 엔드포인트로 POST 요청을 보냅니다.
-    const response = await fetch(`${API_BASE_URL}/api/user/login`, {
+    const resp = await fetch(`${API_BASE_URL}/api/user/login`, {
       method: 'POST',
+      credentials: 'include',                         // ★ 세션 쿠키 주고받기
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded', // ★ formLogin 요구사항
       },
-      // 2. 요청 본문에 이메일과 비밀번호를 JSON 형태로 담아 보냅니다.
-      body: JSON.stringify({
-        email: email,
-        password: password,
-      }),
+      body: new URLSearchParams({ email, password }).toString(),
     });
 
-    // 3. 서버가 200 OK 응답을 보내면, 로그인 성공으로 간주합니다.
-    if (response.ok) {
-      // 서버가 보내준 사용자 데이터를 JSON 형태로 파싱하여 반환합니다.
-      const userData: UserData = await response.json();
-      return userData;
-    } else {
-      // 401 (Unauthorized) 등 다른 상태 코드를 받으면 로그인 실패로 간주합니다.
-      console.error('Login failed: Invalid email or password.');
+    if (!resp.ok) {
+      console.error('Login failed:', resp.status, resp.statusText);
       return null;
     }
-  } catch (error) {
-    // 네트워크 오류 등 요청 중 에러가 발생한 경우
-    console.error('An error occurred during login:', error);
+
+    // 서버가 로그인 성공 시 텍스트만 줄 수 있으므로(“로그인 성공”),
+    // 실제 사용자 정보를 얻으려면 인증이 붙은 엔드포인트를 한번 더 호출
+    // (백엔드에 /api/user/me 가 없다면 건너뛰고 email만 반환)
+    try {
+      const me = await fetch(`${API_BASE_URL}/api/user/me`, {
+        method: 'GET',
+        credentials: 'include',                       // ★ 인증 필요
+      });
+      if (me.ok) {
+        const userData: UserData = await me.json();
+        return userData;
+      }
+    } catch (_) {
+      // /api/user/me 없거나 JSON 아님 → 아래 fallback 사용
+    }
+
+    // fallback: 최소 정보만
+    return { email } as unknown as UserData;
+  } catch (err) {
+    console.error('An error occurred during login:', err);
     return null;
   }
 };
 
 export const handleSignup = async (userData: {
   email: string;
-  username: string; 
+  username: string;
   password: string;
 }): Promise<boolean> => {
   try {
-    const response = await fetch(`/api/user/signup`, {
+    const resp = await fetch(`${API_BASE_URL}/api/user/signup`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      credentials: 'include',                         // 선택(일관성 유지용)
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        username: userData.username, 
+        username: userData.username,
         email: userData.email,
         password: userData.password,
       }),
     });
 
-    if (response.ok) {
-      return true;
-    } else {
-      const errorData = await response.json();
-      console.error('Signup failed:', errorData.message);
-      return false;
+    if (resp.ok) return true;
+
+    // 서버가 에러를 JSON으로 안 줄 수도 있으므로 방어적으로 처리
+    try {
+      const errJson = await resp.json();
+      console.error('Signup failed:', errJson.message ?? errJson);
+    } catch {
+      console.error('Signup failed:', resp.status, resp.statusText);
     }
-  } catch (error) {
-    console.error('An error occurred during signup:', error);
+    return false;
+  } catch (err) {
+    console.error('An error occurred during signup:', err);
     return false;
   }
 };

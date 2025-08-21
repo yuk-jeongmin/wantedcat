@@ -195,6 +195,7 @@ const MainContent = ({
   setCurrentManagement,
   devices,
   setShowAddDeviceForm,
+  selectedDate,
   setEditingDevice,
   setEditingCat,
   currentUser,
@@ -231,7 +232,7 @@ const MainContent = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
             {/* 대시보드 공지사항 */}
             <div>
-              <DashboardNotices streamKey={currentUser?.streamKey} />
+              <DashboardNotices streamKey={currentUser?.streamKey}  userEmail={currentUser?.email} date={selectedDate}  />
             </div>
             {/* 고양이 식사량 통계 */}
             <div>
@@ -243,6 +244,7 @@ const MainContent = ({
                 }}
                 selectedCats={selectedMonitoringCats}
                 onCatSelectionChange={setSelectedMonitoringCats}
+                userId={currentUser?.email || ''} 
               />
             </div>
           </div>
@@ -377,6 +379,7 @@ export default function App() {
   const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
   const [selectedMonitoringCats, setSelectedMonitoringCats] = useState<number[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString("en-CA"));
 
   useEffect(() => {
     const handleResize = () => {
@@ -912,6 +915,7 @@ const handleEditClick = (item: any) => {
               handleDeleteDevice={handleDeleteDevice}
               selectedMonitoringCats={selectedMonitoringCats}
               setSelectedMonitoringCats={setSelectedMonitoringCats}
+              selectedDate={selectedDate} 
             />
         </main>
       </div>
