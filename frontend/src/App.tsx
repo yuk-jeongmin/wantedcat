@@ -905,9 +905,11 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
     }
   };
   const handleDeleteNotice = async (noticeId: number) => {
-    if (window.confirm("정말 이 질문을 삭제하시겠습니까?")) {
+    if (window.confirm("정말 이 공지사항을 삭제하시겠습니까?")) {
+      console.log("Deleting notice:", { noticeId, author: currentUser?.username }); // Updated log
       try {
         await axios.delete(`/api/notices/${noticeId}`, {
+          params: { author: currentUser?.username },
           withCredentials: true,
         });
 

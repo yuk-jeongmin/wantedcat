@@ -11,7 +11,7 @@ interface NoticeDetailProps {
   canEdit?: boolean;
   canDelete?: boolean;
   onEdit?: () => void;
-  onDelete?: () => void;
+  onDelete?: (id: number) => void;
 }
 
 export function NoticeDetail({ notice, onBack, canEdit = false, canDelete = false, onEdit, onDelete }: NoticeDetailProps) {
@@ -66,7 +66,7 @@ export function NoticeDetail({ notice, onBack, canEdit = false, canDelete = fals
                 {canDelete && onDelete && (
                   <Button 
                     variant="outline" 
-                    onClick={onDelete}
+                    onClick={() => onDelete(notice.id)}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
