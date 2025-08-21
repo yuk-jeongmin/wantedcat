@@ -21,9 +21,10 @@ interface PostDetailProps {
   canDelete?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
+  loggedInUsername?: string; // <--- Add this line
 }
 
-export function PostDetail({ item, onBack, canEdit = false, canDelete = false, onEdit, onDelete }: PostDetailProps) {
+export function PostDetail({ item, onBack, canEdit = false, canDelete = false, onEdit, onDelete, loggedInUsername }: PostDetailProps) {
   const [liked, setLiked] = useState(false);
   const [comments, setComments] = useState<PostComment[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -65,10 +66,14 @@ export function PostDetail({ item, onBack, canEdit = false, canDelete = false, o
       alert("댓글 내용을 입력해주세요.");
       return;
     }
+    if (!loggedInUsername) {
+        alert("로그인 후 댓글을 작성할 수 있습니다.");
+        return;
+    }
     try {
       const res = await axios.post(
         `/api/posts/${postId}/comments`,
-        { content: newComment.trim() },
+        { content: newComment.trim(), author: loggedInUsername }, // <--- Add author here
         { withCredentials: true }
       );
       const created = res.data;
@@ -80,11 +85,34 @@ export function PostDetail({ item, onBack, canEdit = false, canDelete = false, o
     }
   };
 
+  const handleDeleteComment = async (commentId: number) => {
+    if (!loggedInUsername) {
+        alert("로그인 후 댓글을 삭제할 수 있습니다.");
+        return;
+    }
+    if (!window.confirm("정말 이 댓글을 삭제하시겠습니까?")) {
+        return;
+    }
+    try {
+        await axios.delete(
+            `/api/posts/${item.id}/comments/${commentId}`,
+            {
+                headers: { "X-USER-NAME": loggedInUsername },
+                withCredentials: true,
+            }
+        );
+        setComments(prev => prev.filter(comment => comment.id !== commentId));
+    } catch (err) {
+        console.error("Failed to delete comment:", err);
+        alert("댓글 삭제에 실패했습니다. 작성자만 삭제할 수 있습니다.");
+    }
+};
+
   // 헤더 우측 카운트: Post면 댓글 수, Question이면 답변 수
-  const rightCount = isPost ? comments.length : isQuestion ? (item as Question).answers.length : 0;
+  const rightCount = isPost ? comments?.length : isQuestion ? (item as Question)?.answers?.length : 0;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-49 flex justify-center items-center p-4">
       <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
@@ -197,7 +225,7 @@ export function PostDetail({ item, onBack, canEdit = false, canDelete = false, o
                   />
                   <div className="flex justify-end">
                     <Button
-                      onClick={handleAddComment}
+                      onClick={() => handleAddComment(item.id)}
                       disabled={!newComment.trim()}
                       className="bg-primary hover:bg-primary/90"
                     >
@@ -216,6 +244,16 @@ export function PostDetail({ item, onBack, canEdit = false, canDelete = false, o
                         <User className="w-4 h-4" />
                         <span className="font-medium">{comment.author}</span>
                         <span className="text-muted-foreground">{formatDate(comment.createdAt)}</span>
+                        {loggedInUsername && loggedInUsername === comment.author && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteComment(comment.id)}
+                                className="text-red-500 hover:text-red-600"
+                            >
+                                삭제
+                            </Button>
+                        )}
                       </div>
                       <p className="pl-6 text-sm">{comment.content}</p>
                     </div>

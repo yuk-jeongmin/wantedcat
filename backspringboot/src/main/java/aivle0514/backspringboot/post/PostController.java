@@ -40,4 +40,9 @@ public class PostController {
     public void delete(@PathVariable Long id, @RequestParam String author) {
         service.delete(id, author);
     }
+
+    @PostMapping("/{id}/view")
+    public void increaseViewCount(@PathVariable Long id) {
+        service.increaseViewCount(id);
+    }
 }

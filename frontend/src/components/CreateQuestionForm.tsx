@@ -23,12 +23,19 @@ export function CreateQuestionForm({ onClose, onSubmit, editingQuestion }: Creat
 
   // Pre-fill form when editing
   useEffect(() => {
-    if (editingQuestion) {
+    if (editingQuestion && editingQuestion.id) {
       setFormData({
         title: editingQuestion.title,
         content: editingQuestion.content,
         author: editingQuestion.author,
         category: editingQuestion.category
+      });
+    } else if (editingQuestion === null) {
+      setFormData({
+        title: "",
+        content: "",
+        author: "",
+        category: ""
       });
     }
   }, [editingQuestion]);
@@ -78,7 +85,11 @@ export function CreateQuestionForm({ onClose, onSubmit, editingQuestion }: Creat
 
             <div className="space-y-2">
               <Label htmlFor="category">카테고리</Label>
-              <Select value={formData.category} onValueChange={(value: string) => setFormData(prev => ({ ...prev, category: value }))}>
+              <Select value={formData.category || undefined} onValueChange={(value) => {
+                if (value) {
+                  setFormData(prev => ({ ...prev, category: value }));
+                }
+              }}>
                 <SelectTrigger>
                   <SelectValue placeholder="카테고리를 선택하세요" />
                 </SelectTrigger>

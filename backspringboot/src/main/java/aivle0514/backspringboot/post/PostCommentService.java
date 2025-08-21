@@ -1,4 +1,3 @@
-// src/main/java/aivle0514/backspringboot/post/PostCommentService.java
 package aivle0514.backspringboot.post;
 
 import lombok.RequiredArgsConstructor;

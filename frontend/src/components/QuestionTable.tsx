@@ -57,8 +57,8 @@ export function QuestionTable({ questions, onQuestionClick, currentUser, onEdit,
               <TableCell className="text-center text-muted-foreground">{question.author}</TableCell>
               <TableCell className="text-center text-muted-foreground">{formatDate(question.createdAt)}</TableCell>
               <TableCell className="text-center font-medium">
-                <span className={question.answers.length > 0 ? 'text-primary' : 'text-muted-foreground'}>
-                  {question.answers.length}
+                <span className={question?.answers?.length > 0 ? 'text-primary' : 'text-muted-foreground'}>
+                  {question?.answers?.length}
                 </span>
               </TableCell>
               <TableCell className="text-center">

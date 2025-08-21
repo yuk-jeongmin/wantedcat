@@ -73,7 +73,7 @@ export interface PostComment {
 }
 
 export async function listPostComments(postId: number): Promise<PostComment[]> {
-  const res = await api.get(`/api/posts/${postId}/comments`);
+  const res = await api.get(`/posts/${postId}/comments`);
   return res.data;
 }
 

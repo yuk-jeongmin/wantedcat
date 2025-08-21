@@ -24,6 +24,12 @@ public class PostService {
     }
 
     @Transactional
+    public void increaseViewCount(Long id) {
+        Post p = postRepository.findById(id).orElseThrow();
+        p.setViews(p.getViews() + 1);
+    }
+
+    @Transactional
     public Post create(String title, String content, String author, String category) {
         Post p = new Post();
         p.setTitle(title);

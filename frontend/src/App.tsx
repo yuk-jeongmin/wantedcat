@@ -432,24 +432,104 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  useEffect(() => {
-        if (isAuthenticated) {
-            const fetchDevices = async () => {
-                try {
-                    const response = await axios.get(`/api/devices`, {
-                        withCredentials: true,
-                    });
-                    if (response.status === 200) {
-                        setDevices(response.data);
-                    }
-                } catch (error) {
-                    console.error("Failed to fetch devices:", error);
-                }
-            };
+    const fetchDevices = async () => {
+    try {
+      const response = await axios.get(`/api/devices`, {
+        withCredentials: true,
+      });
+      if (response.status === 200) {
+        setDevices(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch devices:", error);
+    }
+  };
 
-            fetchDevices();
-        }
-    }, [isAuthenticated]);
+  const fetchCats = async () => {
+    try {
+      const response = await axios.get(`/api/cats`, {
+        withCredentials: true,
+      });
+      if (response.status === 200) {
+        setCats(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch cats:", error);
+    }
+  };
+
+  const fetchPosts = async () => {
+    try {
+      const response = await axios.get(`/api/posts`, {
+        withCredentials: true,
+      });
+      if (response.status === 200) {
+        setPosts(asArray(response.data));
+      }
+    } catch (error) {
+      console.error("Failed to fetch posts:", error);
+    }
+  };
+
+  const fetchNotices = async () => {
+    try {
+      const response = await axios.get(`/api/notices`, {
+        withCredentials: true,
+      });
+      if (response.status === 200) {
+        setNotices(asArray(response.data));
+      }
+    } catch (error) {
+      console.error("Failed to fetch notices:", error);
+    }
+  };
+
+  const fetchQuestions = async () => {
+    try {
+      const response = await axios.get(`/api/questions`, {
+        withCredentials: true,
+      });
+      if (response.status === 200) {
+        setQuestions(asArray(response.data));
+      }
+    } catch (error) {
+      console.error("Failed to fetch questions:", error);
+    }
+  };
+
+
+  //question answer 조회
+  const fetchQuestinAnswers = async () => {
+    try {
+      if (!selectedQuestion) { setAnswers([]); return; }
+      const response = await axios.get(`/api/questions/${selectedQuestion.id}/answers`, {
+        withCredentials: true,
+      });
+      if (response.status === 200) {
+        setAnswers(asArray(response.data));
+      }
+    } catch (error) {
+      console.error("Failed to fetch answers:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchDevices();
+      fetchCats();
+      fetchPosts();
+      fetchNotices();
+      fetchQuestions();
+    }
+  }, [isAuthenticated]);
+
+  // useEffect(() => {
+  //   fetchPostComments();
+  // }, [selectedPost]);
+
+  useEffect(() => {
+    fetchQuestinAnswers();
+  }, [selectedQuestion]);
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -647,10 +727,11 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
       };
       const response = await axios.post(`/api/posts`, payload, { withCredentials: true });
       
-      if (response.status === 201) {
+      if (response.status === 200) {
         const newPost = response.data;
         setPosts(prev => [newPost, ...(Array.isArray(prev) ? prev : [])]);
         setShowCreateForm(false);
+        fetchPosts();
       }
     } catch (error) {
       console.error("Failed to create post:", error);
@@ -667,10 +748,11 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
     // 백엔드의 Q&A 생성 API 엔드포인트로 요청합니다. (엔드포인트는 실제 API에 맞게 조정해야 할 수 있습니다.)
     const response = await axios.post(`/api/questions`, payload, { withCredentials: true });
 
-    if (response.status === 201) {
+    if (response.status === 200) {
       const newQuestion = response.data; // 서버로부터 받은 데이터 사용
       setQuestions(prev => [newQuestion, ...(Array.isArray(prev) ? prev : [])]);
       setShowCreateForm(false);
+      fetchQuestions();
     }
   } catch (error) {
     console.error("Failed to create question:", error);
@@ -687,10 +769,11 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
       };
       const response = await axios.post(`/api/notices`, payload, { withCredentials: true });
 
-      if (response.status === 201) {
+      if (response.status === 200) {
         const newNotice = response.data; // 서버로부터 받은 데이터 사용
         setNotices(prev => [newNotice, ...(Array.isArray(prev) ? prev : [])]);
         setShowCreateForm(false);
+        fetchNotices();
       }
     } catch (error) {
       console.error("Failed to create notice:", error);
@@ -791,6 +874,7 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
     if (window.confirm("정말 이 게시글을 삭제하시겠습니까?")) {
       try {
         await axios.delete(`/api/posts/${postId}`, {
+          params: { author: currentUser?.username },
           withCredentials: true,
         });
 
@@ -808,6 +892,7 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
     if (window.confirm("정말 이 질문을 삭제하시겠습니까?")) {
       try {
         await axios.delete(`/api/questions/${questionId}`, {
+          params: { author: currentUser?.username },
           withCredentials: true,
         });
 
@@ -1212,6 +1297,7 @@ const handleEditClick = (item: any) => {
           canDelete={canDeleteItem(currentUser, selectedPost.author)}
           onEdit={() => handleEditClick(selectedPost)}
           onDelete={() => handleDeletePost(selectedPost.id)}
+          loggedInUsername={currentUser?.username}
         />
       )}
       

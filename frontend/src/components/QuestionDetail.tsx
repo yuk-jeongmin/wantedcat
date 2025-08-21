@@ -16,7 +16,7 @@ export function QuestionDetail({ question }: QuestionDetailProps) {
   };
 
   return (
-    <div className="p-2">
+    <div className="p-2 z-49">
       {/* 헤더: 제목, 상태, 작성자 정보 */}
       <div className="space-y-3 mb-6 pb-6 border-b">
         <Badge 
