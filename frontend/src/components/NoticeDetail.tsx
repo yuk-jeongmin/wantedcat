@@ -30,7 +30,7 @@ export function NoticeDetail({ notice, onBack, canEdit = false, canDelete = fals
     // [핵심] 1. 화면 전체를 덮는 반투명 오버레이
     // 클릭하면 onBack 함수가 호출되어 모달이 닫힙니다.
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4"
+      className="fixed inset-0 bg-black bg-opacity-50 z-49 flex justify-center items-center p-4"
       onClick={onBack}
     >
       {/* [핵심] 2. 실제 콘텐츠가 담길 박스 */}

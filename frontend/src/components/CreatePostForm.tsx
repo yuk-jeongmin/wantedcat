@@ -22,18 +22,6 @@ export function CreatePostForm({ onClose, onSubmit, editingPost }: CreatePostFor
     category: ""
   });
 
-  // Pre-fill form when editing
-  useEffect(() => {
-    if (editingPost) {
-      setFormData({
-        title: editingPost.title,
-        content: editingPost.content,
-        author: editingPost.author,
-        category: editingPost.category
-      });
-    }
-  }, [editingPost]);
-
   const categories = [
     "장난감 추천",
     "건강 관리",
@@ -44,6 +32,24 @@ export function CreatePostForm({ onClose, onSubmit, editingPost }: CreatePostFor
     "경험 공유",
     "기타"
   ];
+
+  useEffect(() => {
+    if (editingPost && editingPost.id) {
+      setFormData({
+        title: editingPost.title,
+        content: editingPost.content,
+        author: editingPost.author,
+        category: editingPost.category
+      });
+    } else if (editingPost === null) {
+      setFormData({
+        title: "",
+        content: "",
+        author: "",
+        category: ""
+      });
+    }
+  }, [editingPost]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,7 +88,15 @@ export function CreatePostForm({ onClose, onSubmit, editingPost }: CreatePostFor
               
               <div className="space-y-2">
                 <Label htmlFor="category">카테고리</Label>
-                <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+                <Select 
+                  key={`select-${editingPost?.id || 'new'}`}
+                  value={formData.category || undefined} 
+                  onValueChange={(value) => {
+                    if (value) {
+                      setFormData(prev => ({ ...prev, category: value }));
+                    }
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="카테고리를 선택하세요" />
                   </SelectTrigger>

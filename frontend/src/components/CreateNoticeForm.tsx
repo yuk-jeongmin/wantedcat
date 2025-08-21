@@ -26,7 +26,7 @@ export function CreateNoticeForm({ onClose, onSubmit, editingNotice }: CreateNot
 
   // Pre-fill form when editing
   useEffect(() => {
-    if (editingNotice) {
+    if (editingNotice && editingNotice.id) {
       setFormData({
         title: editingNotice.title,
         content: editingNotice.content,
@@ -34,6 +34,15 @@ export function CreateNoticeForm({ onClose, onSubmit, editingNotice }: CreateNot
         category: editingNotice.category,
         priority: editingNotice.priority,
         isPinned: editingNotice.isPinned
+      });
+    } else if (editingNotice === null) {
+      setFormData({
+        title: "",
+        content: "",
+        author: "",
+        category: "",
+        priority: "일반",
+        isPinned: false
       });
     }
   }, [editingNotice]);
