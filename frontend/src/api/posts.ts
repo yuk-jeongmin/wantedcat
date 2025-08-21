@@ -7,7 +7,7 @@ export interface PageResponse<T> {
   totalElements: number;
   totalPages: number;
   number: number;   // 현재 페이지 index
-  size?: number;
+  size?: number; 
 }
 
 function normalizePost(raw: any): Post {
