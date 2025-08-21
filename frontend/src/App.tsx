@@ -48,6 +48,7 @@ import { NoticeCard } from "./components/NoticeCard";
 import { NoticeTable } from "./components/NoticeTable";
 import { CreateNoticeForm } from "./components/CreateNoticeForm";
 import { NoticeDetail } from "./components/NoticeDetail";
+import { QuestionDetail } from "./components/QuestionDetail";
 import type {
   BoardType,
   MenuType,
@@ -373,7 +374,7 @@ const MainContent = ({
   
   return (
     <div className="flex-1 flex flex-col h-screen overflow-hidden">
-      <header className="flex h-14 items-center gap-4 border-b bg-white px-6 sticky top-0 z-10">
+      <header className="flex h-14 items-center gap-4 border-b bg-white px-6 sticky top-0">
         <h1 className="text-lg font-semibold">{title}</h1>
       </header>
       <main className="flex-1 overflow-y-auto bg-gray-50">
@@ -416,7 +417,6 @@ export default function App() {
   const [selectedMonitoringCats, setSelectedMonitoringCats] = useState<number[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [comments, setComments] = useState<Comment[]>([]);
-  const [answers, setAnswers] = useState<Answer[]>([]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -501,12 +501,19 @@ export default function App() {
   //question answer 조회
   const fetchQuestinAnswers = async () => {
     try {
-      if (!selectedQuestion) { setAnswers([]); return; }
+      if (!selectedQuestion) { return; } // No need to set answers state if not selected
       const response = await axios.get(`/api/questions/${selectedQuestion.id}/answers`, {
         withCredentials: true,
       });
       if (response.status === 200) {
-        setAnswers(asArray(response.data));
+        const fetchedAnswers = asArray(response.data);
+        setQuestions(prevQuestions => prevQuestions.map(q =>
+          q.id === selectedQuestion.id
+            ? { ...q, answers: fetchedAnswers as Answer[] } // Update answers for the selected question
+            : q
+        ));
+        // Also update selectedQuestion to reflect the new answers immediately
+        setSelectedQuestion(prevSelected => prevSelected ? { ...prevSelected, answers: fetchedAnswers as Answer[] } : null);
       }
     } catch (error) {
       console.error("Failed to fetch answers:", error);
@@ -529,7 +536,7 @@ export default function App() {
 
   useEffect(() => {
     fetchQuestinAnswers();
-  }, [selectedQuestion]);
+  }, [selectedQuestion?.id]);
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -627,25 +634,7 @@ export default function App() {
       fetchPostComments();
       },[]);
 
-      //question answer 조회
-      useEffect(() => {
-    
-      const fetchQuestinAnswers = async () => {
-          try {
-              if (!selectedQuestion) { setAnswers([]); return; }
-              const response = await axios.get(`/api/questions/${selectedQuestion.id}/answers`, {
-                  withCredentials: true,
-              });
-              if (response.status === 200) {
-                  setAnswers(asArray(response.data));
-              }
-          } catch (error) {
-              console.error("Failed to fetch answers:", error);
-          }
-      };
-
-      fetchQuestinAnswers();
-      },[]);
+      
 
   const currentDataRaw = getCurrentData(currentBoard, posts, questions, notices);
   const currentData = asArray(currentDataRaw);                 // ✅ 항상 배열
@@ -814,6 +803,7 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
     questionData: Omit<Question, "id" | "views" | "status" | "answers" | "createdAt">
   ) => {
     if (!editingQuestion) return;
+    console.log("Updating question:", { id: editingQuestion.id, author: questionData.author, data: questionData }); // Add this
     try {
       const { data } = await axios.put(
         `/api/questions/${editingQuestion.id}`,
@@ -920,6 +910,11 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
         alert("공지 삭제에 실패했습니다.");
       }
     }
+  };
+
+  const handleQuestionAnswered = (updatedQuestion: Question) => {
+    setQuestions(prev => prev.map(q => q.id === updatedQuestion.id ? updatedQuestion : q));
+    setSelectedQuestion(null); // Close the detail view
   };
 
   // [수정됨] 고양이 추가: API 요청 후 상태 업데이트 (안전한 방식)
@@ -1304,14 +1299,26 @@ const handleEditClick = (item: any) => {
       )}
       
       {selectedQuestion && (
-        <PostDetail
-          item={questions.find((q) => q.id === selectedQuestion.id) || selectedQuestion}
-          onBack={() => setSelectedQuestion(null)}
-          canEdit={canEditItem(currentUser, selectedQuestion.author)}
-          canDelete={canDeleteItem(currentUser, selectedQuestion.author)}
-          onEdit={() => handleEditClick(selectedQuestion)}
-          onDelete={() => handleDeleteQuestion(selectedQuestion.id)}
-        />
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-49 flex justify-center items-center p-4"
+          onClick={() => setSelectedQuestion(null)}
+        >
+          <div
+            className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <QuestionDetail
+              question={questions.find((q) => q.id === selectedQuestion.id) || selectedQuestion}
+              onBack={() => setSelectedQuestion(null)}
+              canEdit={canEditItem(currentUser, selectedQuestion.author)}
+              canDelete={canDeleteItem(currentUser, selectedQuestion.author)}
+              onEdit={() => handleEditClick(selectedQuestion)}
+              onDelete={() => handleDeleteQuestion(selectedQuestion.id)}
+              currentUser={currentUser}
+              onAnswerSubmitted={handleQuestionAnswered}
+            />
+          </div>
+        </div>
       )}
 
       {selectedNotice && (

@@ -22,6 +22,7 @@ export interface Question {
   status: '접수' | '답변완료';
   views: number;
   answers: Answer[];
+  answersCount?: number; // Add this line
 }
 
 // 폼 데이터 타입을 정의합니다.
