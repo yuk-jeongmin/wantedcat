@@ -3,6 +3,7 @@ package aivle0514.backspringboot.post;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnore; // Added for circular reference fix
 
 @Entity
 @Getter @Setter
@@ -15,6 +16,7 @@ public class PostComment {
 
     @ManyToOne(fetch = FetchType.LAZY)        // FK: post_id
     @JoinColumn(name = "post_id", nullable = false)
+    @JsonIgnore // Prevents circular reference during JSON serialization
     private Post post;
 
     @Column(nullable = false, length = 255)

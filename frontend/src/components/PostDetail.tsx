@@ -238,12 +238,12 @@ export function PostDetail({ item, onBack, canEdit = false, canDelete = false, o
 
                 {/* Comments List */}
                 <div className="space-y-4">
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="space-y-2">
+                  {comments.map((comment, index) => (
+                    <div key={`comment-${comment.id}-${index}`} className="space-y-2">
                       <div className="flex items-center gap-2 text-sm">
                         <User className="w-4 h-4" />
                         <span className="font-medium">{comment.author}</span>
-                        <span className="text-muted-foreground">{formatDate(comment.createdAt)}</span>
+                        <span className="text-muted-foreground">{formatDate(comment?.createdAt)}</span>
                         {loggedInUsername && loggedInUsername === comment.author && (
                             <Button
                                 variant="ghost"
