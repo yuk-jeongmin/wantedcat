@@ -15,9 +15,7 @@ public class DeviceController {
 
     /**
      * 새로운 장치를 추가하는 API
-     * @param requestDto 장치 정보 Dto
-     * @param authentication 현재 로그인된 사용자 정보
-     * @return 생성된 장치 정보
+     * 
      */
     @PostMapping
     public ResponseEntity<Device> addDevice(@RequestBody DeviceDto.AddRequest requestDto, Authentication authentication) {

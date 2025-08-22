@@ -1,11 +1,9 @@
 import axios from 'axios';
 
-const base =
-  (import.meta as any)?.env?.VITE_API_BASE_URL // Vite
-  ?? '';
+// Vite 환경변수 우선, 없으면 프록시(/api) 사용
+const baseURL = import.meta.env.VITE_API_BASE_URL ?? '/api';
 
 export const api = axios.create({
-  baseURL: base || '', // 프록시 사용 시 ''로 두고 '/api' 상대경로 호출
-  withCredentials: true,
+  baseURL,
+  withCredentials: false,
 });
-

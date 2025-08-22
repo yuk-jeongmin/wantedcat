@@ -24,6 +24,12 @@ public class PostService {
     }
 
     @Transactional
+    public void increaseViewCount(Long id) {
+        Post p = postRepository.findById(id).orElseThrow();
+        p.setViews(p.getViews() + 1);
+    }
+
+    @Transactional
     public Post create(String title, String content, String author, String category) {
         Post p = new Post();
         p.setTitle(title);
@@ -32,7 +38,6 @@ public class PostService {
         p.setCategory(category);
         p.setViews(0);
         p.setLikes(0);
-        p.setComments(0);
         return postRepository.save(p);
     }
 
@@ -46,8 +51,13 @@ public class PostService {
     }
 
     @Transactional
-    public void delete(Long id, String author) {
-        Post p = postRepository.findByIdAndAuthor(id, author).orElseThrow();
+    public void delete(Long id, String author, String userRole) {
+        Post p;
+        if ("admin".equals(userRole)) {
+            p = postRepository.findById(id).orElseThrow();
+        } else {
+            p = postRepository.findByIdAndAuthor(id, author).orElseThrow();
+        }
         postRepository.delete(p);
     }
 }

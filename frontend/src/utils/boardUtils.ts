@@ -35,12 +35,33 @@ export const getCurrentData = (
   }
 };
 
+// --- 여기부터: 배열/페이지 응답 모두 지원 ---
+type PageLike<T> = { content: T[] } & Record<string, unknown>;
+
+function toArray<T = any>(data: unknown): T[] {
+  if (Array.isArray(data)) return data as T[];
+  if (data && typeof data === 'object' && Array.isArray((data as PageLike<T>).content)) {
+    return (data as PageLike<T>).content;
+  }
+  return [];
+}
+
 export const getCurrentCategories = (
   currentBoard: BoardType,
-  data: (Post | Question | Notice)[]
+  data: unknown   // ← 배열도, {content: []}도 OK
 ): string[] => {
   if (currentBoard === 'qna') {
+    // 상태 탭 고정이라면 그대로 반환
     return ['접수', '답변완료'];
   }
-  return Array.from(new Set(data.map((item: any) => item.category)));
+
+  const list = toArray<Post | Question | Notice>(data);
+
+  return Array.from(
+    new Set(
+      list
+        .map((item: any) => (item?.category ?? '').toString().trim())
+        .filter((v) => v.length > 0)
+    )
+  );
 };

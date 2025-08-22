@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS devices (
 );
 
 CREATE TABLE IF NOT EXISTS posts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     content LONGTEXT NOT NULL,
     author VARCHAR(255) NOT NULL,
@@ -59,6 +59,17 @@ CREATE TABLE IF NOT EXISTS posts (
     INDEX idx_posts_created_at (created_at),
     INDEX idx_posts_category_created (category, created_at)
     -- FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS post_comments (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  post_id INT NOT NULL,
+  author VARCHAR(255) NOT NULL,
+  content LONGTEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_post_comments_post
+    FOREIGN KEY (post_id) REFERENCES posts(id)
+    ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS questions (
@@ -91,7 +102,7 @@ CREATE TABLE IF NOT EXISTS question_answers (
 );
 
 CREATE TABLE IF NOT EXISTS notices (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     content LONGTEXT NOT NULL,
     author VARCHAR(255) NOT NULL,

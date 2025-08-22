@@ -36,8 +36,8 @@ export function NoticeTable({ notices, onNoticeClick, currentUser, onEdit, onDel
   const canDelete = (author: string) => currentUser?.username === author || currentUser?.role === 'admin';
 
   const sortedNotices = [...notices].sort((a, b) => {
-    if (a.isPinned && !b.isPinned) return -1;
-    if (!a.isPinned && b.isPinned) return 1;
+    if (a.pinned && !b.pinned) return -1;
+    if (!a.pinned && b.pinned) return 1;
     
     const priorityOrder = { '긴급': 3, '중요': 2, '일반': 1 };
     const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
@@ -65,14 +65,14 @@ export function NoticeTable({ notices, onNoticeClick, currentUser, onEdit, onDel
             <TableRow 
               key={notice.id} 
               className={`cursor-pointer hover:bg-gray-50 ${
-                notice.isPinned ? 'bg-yellow-50/50' : ''
+                notice.pinned ? 'bg-yellow-50/50' : ''
               }`}
               onClick={() => onNoticeClick(notice)}
             >
               <TableCell className="text-center text-muted-foreground">{notice.id}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  {notice.isPinned && <Pin className="w-4 h-4 text-yellow-600 flex-shrink-0" />}
+                  {notice.pinned && <Pin className="w-4 h-4 text-yellow-600 flex-shrink-0" />}
                   <div className="flex flex-col">
                     <span className="hover:text-primary transition-colors line-clamp-1">
                       {notice.title.length > 30 ? `${notice.title.substring(0, 30)}...` : notice.title}
