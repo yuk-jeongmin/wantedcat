@@ -345,7 +345,7 @@ export function AddCatForm({ onClose, onSubmit, editingCat, userId }: AddCatForm
                 id="age"
                 value={formData.age}
                 onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
-                placeholder="예: 2년 3개월, 6개월"
+                placeholder="개월 기준으로 숫자만 넣어주세요(예: 6)"
                 required
               />
             </div>
@@ -357,7 +357,7 @@ export function AddCatForm({ onClose, onSubmit, editingCat, userId }: AddCatForm
                 id="weight"
                 value={formData.weight}
                 onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
-                placeholder="예: 4.2kg"
+                placeholder="kg 기준으로 숫자만 넣어주세요(예: 4.2)"
                 required
               />
             </div>

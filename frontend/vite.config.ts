@@ -14,15 +14,9 @@ export default defineConfig({
   server: {
     port: 5174,
     host: true, // Gitpod 환경에서 서버 접속을 위해 필요
-<<<<<<< HEAD
     allowedHosts: ['5174-storyinstoryj-wantedcat-rjagzvfxvzc.ws-us121.gitpod.io'],
     proxy: {
             '/api': { target: 'https://8080-storyinstoryj-wantedcat-rjagzvfxvzc.ws-us121.gitpod.io', changeOrigin: true }
-=======
-    allowedHosts: ['5174-ksyeoni-wantedcat-5j55vxdy5xk.ws-us121.gitpod.io'],
-    proxy: {
-            '/api': { target: 'https://8080-ksyeoni-wantedcat-5j55vxdy5xk.ws-us121.gitpod.io', changeOrigin: true }
->>>>>>> origin/ver2
       ,
       // 추가-jks: FastAPI(collectionservice, 8000)
       '/collection': {
