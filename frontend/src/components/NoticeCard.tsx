@@ -13,7 +13,7 @@ export interface Notice {
   category: string;
   views: number;
   priority: '일반' | '중요' | '긴급';
-  isPinned: boolean;
+  pinned: boolean;
 }
 
 interface NoticeCardProps {
@@ -51,7 +51,7 @@ export function NoticeCard({ notice, onClick, canEdit = false, canDelete = false
   return (
     <Card 
       className={`hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 ${
-        notice.isPinned 
+        notice.pinned 
           ? 'border-l-yellow-400 bg-yellow-50/50' 
           : notice.priority === '긴급'
             ? 'border-l-red-500'
@@ -64,7 +64,7 @@ export function NoticeCard({ notice, onClick, canEdit = false, canDelete = false
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex items-center gap-2">
-            {notice.isPinned && <Pin className="w-4 h-4 text-yellow-600" />}
+            {notice.pinned && <Pin className="w-4 h-4 text-yellow-600" />}
             <Badge className={getPriorityColor(notice.priority)}>
               {notice.priority}
             </Badge>

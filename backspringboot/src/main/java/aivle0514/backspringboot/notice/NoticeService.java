@@ -25,6 +25,12 @@ public class NoticeService {
     }
 
     @Transactional
+    public void increaseViewCount(Long id) {
+        Notice n = noticeRepository.findById(id).orElseThrow();
+        n.setViews(n.getViews() + 1);
+    }
+
+    @Transactional
     public Notice create(String title, String content, String author, String category,
                          Notice.Priority priority, Boolean isPinned) {
         Notice n = new Notice();

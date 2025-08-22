@@ -20,7 +20,7 @@ export function MainHeader({
   onSortChange
 }: MainHeaderProps) {
   return (
-    <div className="bg-white border-b border-border sticky top-0 z-10">
+    <div className="bg-white border-b border-border sticky top-0">
       <div className="px-6 py-4 flex items-center justify-between">
         <div>
           <h2>{selectedCategory || "전체 게시물"}</h2>

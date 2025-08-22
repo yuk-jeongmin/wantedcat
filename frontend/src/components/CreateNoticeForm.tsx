@@ -15,25 +15,62 @@ interface CreateNoticeFormProps {
 }
 
 export function CreateNoticeForm({ onClose, onSubmit, editingNotice }: CreateNoticeFormProps) {
-  const [formData, setFormData] = useState({
-    title: "",
-    content: "",
-    author: "",
-    category: "",
-    priority: "일반" as '일반' | '중요' | '긴급',
-    isPinned: false
+  const [formData, setFormData] = useState(() => {
+    // 초기값을 함수로 설정하여 editingNotice가 있을 때 바로 설정
+    if (editingNotice && editingNotice.id) {
+      return {
+        title: editingNotice.title || "",
+        content: editingNotice.content || "",
+        author: editingNotice.author || "",
+        category: editingNotice.category || "",
+        priority: editingNotice.priority || "일반" as '일반' | '중요' | '긴급',
+        pinned: editingNotice.pinned || (editingNotice as any).pinned || false
+      };
+    }
+    return {
+      title: "",
+      content: "",
+      author: "",
+      category: "",
+      priority: "일반" as '일반' | '중요' | '긴급',
+      pinned: false
+    };
   });
 
-  // Pre-fill form when editing
+  // Pre-fill form when editing - only update if editingNotice changes and has different values
   useEffect(() => {
-    if (editingNotice) {
+    if (editingNotice && editingNotice.id) {
+      console.log('Setting form data for editing:', editingNotice); // 디버깅용
+      console.log('editingNotice.category:', editingNotice.category); // 카테고리 값 확인
+      console.log('editingNotice.pinned:', editingNotice.pinned); // pinned 확인
+      console.log('editingNotice.pinned:', (editingNotice as any).pinned); // pinned 필드 확인
+      
+      const newFormData = {
+        title: editingNotice.title || "",
+        content: editingNotice.content || "",
+        author: editingNotice.author || "",
+        category: editingNotice.category || "",
+        priority: editingNotice.priority || "일반" as '일반' | '중요' | '긴급',
+        pinned: editingNotice.pinned || (editingNotice as any).pinned || false
+      };
+      
+      // 현재 formData와 다를 때만 업데이트
+      setFormData(prev => {
+        if (JSON.stringify(prev) !== JSON.stringify(newFormData)) {
+          console.log('Updating form data with new values');
+          return newFormData;
+        }
+        return prev;
+      });
+    } else if (editingNotice === null) {
+      console.log('Resetting form data'); // 디버깅용
       setFormData({
-        title: editingNotice.title,
-        content: editingNotice.content,
-        author: editingNotice.author,
-        category: editingNotice.category,
-        priority: editingNotice.priority,
-        isPinned: editingNotice.isPinned
+        title: "",
+        content: "",
+        author: "",
+        category: "",
+        priority: "일반",
+        pinned: false
       });
     }
   }, [editingNotice]);
@@ -84,7 +121,16 @@ export function CreateNoticeForm({ onClose, onSubmit, editingNotice }: CreateNot
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="category">카테고리</Label>
-                <Select value={formData.category} onValueChange={(value: string) => setFormData(prev => ({ ...prev, category: value }))}>
+                <Select 
+                  key={`category-${editingNotice?.id || 'new'}`}
+                  value={formData.category || ""} 
+                  onValueChange={(value: string) => {
+                    console.log('Category changed to:', value); // 디버깅용
+                    console.log('Available categories:', categories); // 사용 가능한 카테고리 확인
+                    console.log('Current formData.category before change:', formData.category); // 변경 전 값
+                    setFormData(prev => ({ ...prev, category: value }));
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="카테고리를 선택하세요" />
                   </SelectTrigger>
@@ -96,6 +142,10 @@ export function CreateNoticeForm({ onClose, onSubmit, editingNotice }: CreateNot
                     ))}
                   </SelectContent>
                 </Select>
+                {/* 디버깅용 표시 */}
+                <div className="text-xs text-gray-500">
+                  현재 카테고리: {formData.category || '선택되지 않음'}
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -129,11 +179,11 @@ export function CreateNoticeForm({ onClose, onSubmit, editingNotice }: CreateNot
 
             <div className="flex items-center space-x-2">
               <Checkbox
-                id="isPinned"
-                checked={formData.isPinned}
-                onCheckedChange={(checked: boolean) => setFormData(prev => ({ ...prev, isPinned: !!checked }))}
+                id="pinned"
+                checked={formData.pinned}
+                onCheckedChange={(checked: boolean) => setFormData(prev => ({ ...prev, pinned: !!checked }))}
               />
-              <Label htmlFor="isPinned">상단 고정</Label>
+              <Label htmlFor="pinned">상단 고정</Label>
             </div>
 
             <div className="space-y-2">

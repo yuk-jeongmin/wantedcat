@@ -10,7 +10,7 @@ export const initialNotices: Notice[] = [
     category: "모임 안내",
     views: 1250,
     priority: "긴급",
-    isPinned: true
+    pinned: true
   },
   {
     id: 2,
@@ -21,7 +21,7 @@ export const initialNotices: Notice[] = [
     category: "봉사활동",
     views: 892,
     priority: "중요",
-    isPinned: false
+    pinned: false
   },
   {
     id: 3,
@@ -32,6 +32,6 @@ export const initialNotices: Notice[] = [
     category: "운영 안내",
     views: 567,
     priority: "일반",
-    isPinned: false
+    pinned: false
   }
 ];

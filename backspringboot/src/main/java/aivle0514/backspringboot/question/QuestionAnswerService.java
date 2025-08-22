@@ -21,6 +21,15 @@ public class QuestionAnswerService {
     @Transactional
     public QuestionAnswer create(QuestionAnswerDto.CreateRequest req) {
         Question q = questionRepository.findById(req.getQuestionId()).orElseThrow();
+        // Increment answersCount
+        q.setAnswersCount(q.getAnswersCount() + 1);
+
+        // Update status to '답변완료'
+        q.setStatus(Question.Status.답변완료);
+
+        // Save the updated Question entity
+        questionRepository.save(q); // This will persist the changes to answersCount and status
+
         QuestionAnswer a = new QuestionAnswer();
         a.setQuestion(q);
         a.setContent(req.getContent());

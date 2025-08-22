@@ -32,9 +32,18 @@ export async function createNotice(payload: {
   author: string; // 문자열
   category: string;
   priority?: '일반'|'중요'|'긴급';
-  isPinned?: boolean;
+  pinned?: boolean;
 }): Promise<Notice> {
-  const res = await api.post('/api/notices', payload);
+  const paramPayload = {
+    author : payload.author,
+    title : payload.title,
+    content : payload.content,
+    category : payload.category,
+    priority : payload.priority,
+    isPinned: payload.pinned
+  }
+
+  const res = await api.post('/api/notices', paramPayload);
   return res.data;
 }
 
@@ -47,10 +56,19 @@ export async function updateNotice(
     content?: string;
     category?: string;
     priority?: '일반'|'중요'|'긴급';
-    isPinned?: boolean;
+    pinned?: boolean;
   }
 ): Promise<Notice> {
-  const res = await api.put(`/api/notices/${id}`, payload);
+  const paramPayload = {
+    author : payload.author,
+    title : payload.title,
+    content : payload.content,
+    category : payload.category,
+    priority : payload.priority,
+    isPinned: payload.pinned
+  }
+
+  const res = await api.put(`/api/notices/${id}`, paramPayload);
   return res.data;
 }
 

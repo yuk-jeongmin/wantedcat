@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Separator } from "./ui/separator";
 import { ArrowLeft, Clock, User, Edit, Trash2 } from "lucide-react";
+import { Badge } from "./ui/badge";
 
 // NoticeDetail 컴포넌트에 필요한 props 타입 정의
 interface NoticeDetailProps {
@@ -11,13 +12,20 @@ interface NoticeDetailProps {
   canEdit?: boolean;
   canDelete?: boolean;
   onEdit?: () => void;
-  onDelete?: () => void;
+  onDelete?: (id: number) => void;
 }
 
 export function NoticeDetail({ notice, onBack, canEdit = false, canDelete = false, onEdit, onDelete }: NoticeDetailProps) {
   // 날짜 형식을 보기 좋게 변환하는 함수
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString("ko-KR", {
+    let dateToFormat;
+    if (dateString.endsWith('Z')) {
+      dateToFormat = new Date(dateString);
+    } else {
+      dateToFormat = new Date(dateString + 'Z');
+    }
+
+    return dateToFormat.toLocaleString("ko-KR", {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -30,7 +38,7 @@ export function NoticeDetail({ notice, onBack, canEdit = false, canDelete = fals
     // [핵심] 1. 화면 전체를 덮는 반투명 오버레이
     // 클릭하면 onBack 함수가 호출되어 모달이 닫힙니다.
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4"
+      className="fixed inset-0 bg-black bg-opacity-50 z-49 flex justify-center items-center p-4"
       onClick={onBack}
     >
       {/* [핵심] 2. 실제 콘텐츠가 담길 박스 */}
@@ -66,7 +74,7 @@ export function NoticeDetail({ notice, onBack, canEdit = false, canDelete = fals
                 {canDelete && onDelete && (
                   <Button 
                     variant="outline" 
-                    onClick={onDelete}
+                    onClick={() => onDelete(notice.id)}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
@@ -80,7 +88,10 @@ export function NoticeDetail({ notice, onBack, canEdit = false, canDelete = fals
           {/* 공지사항 상세 내용 카드 */}
           <Card>
             <CardHeader className="pb-4">
-              <h1 className="text-2xl font-bold mb-3">{notice.title}</h1>
+              <div className="flex-1">
+                <Badge variant="secondary" className="mb-3">{notice.category}</Badge>
+                <h1 className="text-2xl font-bold mb-3">{notice.title}</h1>
+              </div>
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <User className="w-4 h-4" />
