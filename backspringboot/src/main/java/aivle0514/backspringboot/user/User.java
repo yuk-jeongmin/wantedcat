@@ -47,6 +47,10 @@ public class User {
         this.password = password;
     }
 
+    // 사용자 프로필 이미지 
+    @Column(name = "profile_image")
+    private String profileImage;
+
     @Builder
     public User(String username, String password, String email) {
         this.username = username;
@@ -55,6 +59,14 @@ public class User {
         this.joinDate = java.time.OffsetDateTime.now().toString();
         this.role = "user"; // 기본 역할 'user'로 설정
         this.streamKey = UUID.randomUUID().toString();
+        this.profileImage = null; // 기본값은 null;
+    }
+
+    public void update(String username, String email, String profileImage){
+        this.username = username;
+        this.email = email;
+        // this.streamKey = UUID.randomUUID().toString();
+        this.profileImage = profileImage; 
     }
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)

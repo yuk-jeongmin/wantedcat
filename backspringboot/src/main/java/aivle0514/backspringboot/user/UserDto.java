@@ -31,6 +31,22 @@ public class UserDto {
         }
     }
 
+    //프로필 수정
+    @Getter
+    @Setter
+    public static class UpdateRequest{
+        private String username;
+        private String email;
+        private String profileImage;
+    }
+
+    @Getter
+    @Setter
+    public static class PasswordChangeRequest {
+        private String currentPassword;
+        private String newPassword;
+    }
+
     // ✨ User 엔티티의 모든 정보를 포함하도록 업데이트된 응답 Dto
     @Getter
     public static class UserResponse {
@@ -40,6 +56,7 @@ public class UserDto {
         private final String joinDate;
         private final String role;
         private final String streamKey;
+        private final String profileImage; //프로필 이미지 url 필드 
 
         public UserResponse(User user) {
             this.id = user.getId();
@@ -48,6 +65,7 @@ public class UserDto {
             this.joinDate = user.getJoinDate();
             this.role = user.getRole();
             this.streamKey = user.getStreamKey();
+            this.profileImage = user.getProfileImage();  //필드 매핑
         }
     }
 }
