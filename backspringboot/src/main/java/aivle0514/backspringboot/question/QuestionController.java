@@ -40,8 +40,8 @@ public class QuestionController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id, @RequestParam String author) {
-        service.delete(id, author);
+    public void delete(@PathVariable Long id, @RequestParam String author, @RequestParam String userRole) {
+        service.delete(id, author, userRole);
     }
 
     @PostMapping("/{id}/view")

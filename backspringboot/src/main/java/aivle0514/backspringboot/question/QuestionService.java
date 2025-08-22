@@ -57,8 +57,13 @@ public class QuestionService {
     }
 
     @Transactional
-    public void delete(Long id, String author) {
-        Question q = questionRepository.findByIdAndAuthor(id, author).orElseThrow();
+    public void delete(Long id, String author, String userRole) {
+        Question q;
+        if ("admin".equals(userRole)) {
+            q = questionRepository.findById(id).orElseThrow();
+        } else {
+            q = questionRepository.findByIdAndAuthor(id, author).orElseThrow();
+        }
         questionRepository.delete(q);
     }
 }

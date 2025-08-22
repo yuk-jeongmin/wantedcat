@@ -51,8 +51,13 @@ public class PostService {
     }
 
     @Transactional
-    public void delete(Long id, String author) {
-        Post p = postRepository.findByIdAndAuthor(id, author).orElseThrow();
+    public void delete(Long id, String author, String userRole) {
+        Post p;
+        if ("admin".equals(userRole)) {
+            p = postRepository.findById(id).orElseThrow();
+        } else {
+            p = postRepository.findByIdAndAuthor(id, author).orElseThrow();
+        }
         postRepository.delete(p);
     }
 }

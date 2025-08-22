@@ -875,7 +875,10 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
     if (window.confirm("정말 이 게시글을 삭제하시겠습니까?")) {
       try {
         await axios.delete(`/api/posts/${postId}`, {
-          params: { author: currentUser?.username },
+          params: { 
+            author: currentUser?.username,
+            userRole: currentUser?.role
+           },
           withCredentials: true,
         });
 
@@ -893,7 +896,10 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
     if (window.confirm("정말 이 질문을 삭제하시겠습니까?")) {
       try {
         await axios.delete(`/api/questions/${questionId}`, {
-          params: { author: currentUser?.username },
+          params: { 
+            author: currentUser?.username,
+            userRole: currentUser?.role
+          },
           withCredentials: true,
         });
 
@@ -910,7 +916,9 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
       console.log("Deleting notice:", { noticeId, author: currentUser?.username }); // Updated log
       try {
         await axios.delete(`/api/notices/${noticeId}`, {
-          params: { author: currentUser?.username },
+          params: { 
+            author: currentUser?.username
+           },
           withCredentials: true,
         });
 
