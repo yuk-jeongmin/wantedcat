@@ -22,7 +22,14 @@ interface QuestionDetailProps {
 
 export function QuestionDetail({ question, onBack, canEdit, canDelete, onEdit, onDelete, currentUser, onAnswerSubmitted }: QuestionDetailProps) {
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString("ko-KR", {
+    let dateToFormat;
+    if (dateString.endsWith('Z')) {
+      dateToFormat = new Date(dateString);
+    } else {
+      dateToFormat = new Date(dateString + 'Z');
+    }
+
+    return dateToFormat.toLocaleString("ko-KR", {
       year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
   };

@@ -51,11 +51,16 @@ export function PostDetail({ item, onBack, canEdit = false, canDelete = false, o
   }, [isPost, item]);
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    let dateToFormat;
+    if (dateString.endsWith('Z')) {
+      dateToFormat = new Date(dateString);
+    } else {
+      dateToFormat = new Date(dateString + 'Z');
+    }
     return (
-      date.toLocaleDateString("ko-KR") +
+      dateToFormat.toLocaleDateString("ko-KR") +
       " " +
-      date.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
+      dateToFormat.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
     );
   };
 

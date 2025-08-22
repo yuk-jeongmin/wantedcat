@@ -18,7 +18,14 @@ interface NoticeDetailProps {
 export function NoticeDetail({ notice, onBack, canEdit = false, canDelete = false, onEdit, onDelete }: NoticeDetailProps) {
   // 날짜 형식을 보기 좋게 변환하는 함수
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString("ko-KR", {
+    let dateToFormat;
+    if (dateString.endsWith('Z')) {
+      dateToFormat = new Date(dateString);
+    } else {
+      dateToFormat = new Date(dateString + 'Z');
+    }
+
+    return dateToFormat.toLocaleString("ko-KR", {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
