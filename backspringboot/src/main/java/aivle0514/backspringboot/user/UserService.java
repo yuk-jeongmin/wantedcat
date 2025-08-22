@@ -74,4 +74,29 @@ public class UserService implements UserDetailsService {
 
         return new UserDto.UserResponse(user);
     }
+
+    // 마이페이지 수정.
+    @Transactional
+    public UserDto.UserResponse updateUser(String email, UserDto.UpdateRequest requestDto) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+
+        user.update(requestDto.getUsername(), requestDto.getEmail(), requestDto.getProfileImage());
+        userRepository.save(user);
+
+        return new UserDto.UserResponse(user);
+    }
+
+    @Transactional
+    public void changePassword(String email, UserDto.PasswordChangeRequest requestDto) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+
+        if (!passwordEncoder.matches(requestDto.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        user.setPassword(passwordEncoder.encode(requestDto.getNewPassword()));
+        userRepository.save(user);
+    }
 }

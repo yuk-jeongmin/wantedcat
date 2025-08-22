@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) NOT NULL UNIQUE,
     join_date VARCHAR(255) NOT NULL,
     role VARCHAR(255) NOT NULL,
-    stream_key VARCHAR(255) NOT NULL UNIQUE
+    stream_key VARCHAR(255) NOT NULL UNIQUE,
+    profile_image VARCHAR(1000)  -- 프로필 이미지 URL 추가
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS devices (

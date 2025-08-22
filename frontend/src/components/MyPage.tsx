@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef, ChangeEvent,useEffect} from "react";
+import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -24,7 +25,8 @@ import {
   Activity,
   Scale
 } from "lucide-react";
-import { ImageWithFallback } from "./figma/ImageWithFallback";
+// import { ImageWithFallback } from "./figma/ImageWithFallback";
+
 
 interface Device {
   id: number;
@@ -36,14 +38,22 @@ interface Device {
   batteryLevel?: number;
 }
 
+interface Cat {
+  id: number;
+  name: string;
+  // Add other cat properties as needed
+}
+
 interface MyPageProps {
   user: {
-    username: string;
-    email: string;
+    username?: string;
+    email?: string;
     profileImage?: string;
-    joinDate: string;
+    joinDate?: string;
   };
+  onUserUpdate: (updatedUser: MyPageProps['user']) => void;
 }
+
 
 const mockDevices: Device[] = [
   {
@@ -73,11 +83,45 @@ const mockDevices: Device[] = [
   }
 ];
 
-export function MyPage({ user }: MyPageProps) {
+export function MyPage({ user, onUserUpdate }: MyPageProps) {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [activeTab, setActiveTab] = useState<'profile' | 'devices' | 'notifications' | 'security'>('profile');
   const [showAddDevice, setShowAddDevice] = useState(false);
-  const [devices, setDevices] = useState<Device[]>(mockDevices);
-  const [userInfo, setUserInfo] = useState(user);
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [cats, setCats] = useState<Cat[]>([]);
+  const [localUser, setLocalUser] = useState(user);
+
+  useEffect(() => {
+    setLocalUser(user);
+  }, [user]);
+
+    useEffect(() => {
+    async function fetchData() {
+      try {
+        // Cats
+        const catResponse = await axios.get("/api/cats", {
+          withCredentials: true,
+        });
+        setCats(catResponse.data);
+
+        // Devices
+        const devicesResponse = await axios.get("/api/devices", {
+          withCredentials: true,
+        });
+        setDevices(devicesResponse.data);
+
+      } catch (error) {
+        console.error("데이터 가져오기 실패", error);
+      }
+    }
+    fetchData();
+  },[]);
+  
+
+
   const [notifications, setNotifications] = useState({
     feedingAlerts: true,
     healthAlerts: true,
@@ -86,6 +130,11 @@ export function MyPage({ user }: MyPageProps) {
     emailNotifications: true,
     pushNotifications: true
   });
+
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const getDeviceIcon = (type: Device['type']) => {
     return type === 'homecam' ? <Camera className="w-4 h-4" /> : <Scale className="w-4 h-4" />;
@@ -116,9 +165,53 @@ export function MyPage({ user }: MyPageProps) {
     return `${Math.floor(diffMinutes / 1440)}일 전`;
   };
 
-  const handleSaveProfile = () => {
-    // Here you would typically save to a backend
-    alert('프로필이 저장되었습니다.');
+  
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+        const updateRequest = {
+            username: localUser.username ?? "",
+            email: localUser.email,
+            profileImage: previewUrl || localUser.profileImage, // 이전에 선택한 파일이 없으면 기존 이미지 사용
+        };
+        const response = await axios.put("/api/user/update", updateRequest, {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+        });
+        alert("수정완료!");
+        onUserUpdate(response.data); // App.tsx의 currentUser 상태 업데이트
+    } catch (error) {
+        console.error("update failed", error);
+        alert("업데이트 실패");
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (newPassword !== confirmPassword) {
+      alert("새 비밀번호가 일치하지 않습니다.");
+      return;
+    }
+    try {
+      await axios.put("/api/user/change-password", {
+        currentPassword,
+        newPassword,
+      }, { withCredentials: true });
+      alert("비밀번호가 성공적으로 변경되었습니다.");
+      setShowPasswordModal(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      console.error("password change failed", error);
+      alert("비밀번호 변경에 실패했습니다.");
+    }
   };
 
   const handleAddDevice = (deviceType: 'homecam' | 'weight-sensor') => {
@@ -151,47 +244,17 @@ export function MyPage({ user }: MyPageProps) {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex space-x-1 bg-muted p-1 rounded-lg w-fit">
-        <button
-          onClick={() => setActiveTab('profile')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === 'profile' 
-              ? 'bg-background text-foreground shadow-sm' 
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          개인정보
-        </button>
-        <button
-          onClick={() => setActiveTab('devices')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === 'devices' 
-              ? 'bg-background text-foreground shadow-sm' 
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          장치 관리
-        </button>
-        <button
-          onClick={() => setActiveTab('notifications')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === 'notifications' 
-              ? 'bg-background text-foreground shadow-sm' 
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          알림 설정
-        </button>
-        <button
-          onClick={() => setActiveTab('security')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === 'security' 
-              ? 'bg-background text-foreground shadow-sm' 
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          보안 설정
-        </button>
+      <div >
+      <button
+        onClick={() => setActiveTab('profile')}
+        className={`bg-white text-gray-900 px-4 py-2 rounded-md text-sm font-medium transition-colors border border-gray-300 ${
+          activeTab === 'profile' 
+            ? 'bg-background text-foreground shadow-sm' 
+            : 'text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        개인정보
+      </button>
       </div>
 
       {/* Profile Tab */}
@@ -209,14 +272,29 @@ export function MyPage({ user }: MyPageProps) {
                 {/* Profile Image */}
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200">
-                    <ImageWithFallback
-                      src={userInfo.profileImage || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face"}
+                    {/* <ImageWithFallback
+                      src={previewUrl || userInfo.profileImage }
                       alt="프로필 사진"
                       className="w-full h-full object-cover"
-                    />
+                    /> */}
+                    <img
+                        src={previewUrl || localUser.profileImage}
+                        alt="프로필 사진"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "/images/default-profile.png"; // 에러 시 기본 이미지 사용
+                        }}
+                      />
                   </div>
                   <div>
-                    <Button variant="outline" size="sm">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      className="hidden"
+                      accept="image/png, image/jpeg"
+                    />
+                    <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
                       <Camera className="w-4 h-4 mr-2" />
                       사진 변경
                     </Button>
@@ -232,8 +310,8 @@ export function MyPage({ user }: MyPageProps) {
                     <Label htmlFor="name">이름</Label>
                     <Input
                       id="name"
-                      value={userInfo.username}
-                      onChange={(e) => setUserInfo(prev => ({ ...prev, name: e.target.value }))}
+                      value={localUser.username}
+                      onChange={(e) => setLocalUser(prev => ({ ...prev, username: e.target.value }))}
                     />
                   </div>
                   <div className="space-y-2">
@@ -241,8 +319,8 @@ export function MyPage({ user }: MyPageProps) {
                     <Input
                       id="email"
                       type="email"
-                      value={userInfo.email}
-                      onChange={(e) => setUserInfo(prev => ({ ...prev, email: e.target.value }))}
+                      value={localUser.email}
+                      onChange={(e) => setLocalUser(prev => ({ ...prev, email: e.target.value }))}
                     />
                   </div>
                   
@@ -250,16 +328,21 @@ export function MyPage({ user }: MyPageProps) {
                     <Label htmlFor="joinDate">가입일</Label>
                     <Input
                       id="joinDate"
-                      value={new Date(userInfo.joinDate).toLocaleDateString('ko-KR')}
+                      value={new Date(localUser.joinDate).toLocaleDateString('ko-KR')}
                       disabled
                       className="bg-muted"
                     />
                   </div>
+                </div>    
+                <div className="flex space-x-6">
+                    <Button onClick={handleSaveProfile} className="bg-primary hover:bg-primary/90">
+                        변경사항 저장
+                    </Button>
+                    <Button variant="outline" onClick={() => setShowPasswordModal(true)}>
+                        <Key className="w-4 h-4 mr-2" />
+                        비밀번호 변경
+                    </Button>
                 </div>
-
-                <Button onClick={handleSaveProfile} className="bg-primary hover:bg-primary/90">
-                  변경사항 저장
-                </Button>
               </CardContent>
             </Card>
           </div>
@@ -273,15 +356,7 @@ export function MyPage({ user }: MyPageProps) {
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">등록된 고양이</span>
-                  <span className="text-sm font-medium">4마리</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">게시물 수</span>
-                  <span className="text-sm font-medium">12개</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">댓글 수</span>
-                  <span className="text-sm font-medium">34개</span>
+                  <span className="text-sm font-medium">{cats.length}마리</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">연결된 장치</span>
@@ -290,26 +365,6 @@ export function MyPage({ user }: MyPageProps) {
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">빠른 작업</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start">
-                  <Key className="w-4 h-4 mr-2" />
-                  비밀번호 변경
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  결제 정보 관리
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Shield className="w-4 h-4 mr-2" />
-                  개인정보 내보내기
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         </div>
       )}
@@ -565,6 +620,54 @@ export function MyPage({ user }: MyPageProps) {
               >
                 취소
               </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Password Change Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>비밀번호 변경</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="current-password">현재 비밀번호</Label>
+                <Input
+                  id="current-password"
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-password">새 비밀번호</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">새 비밀번호 확인</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowPasswordModal(false)}>
+                  취소
+                </Button>
+                <Button onClick={handlePasswordChange}>
+                  변경사항 저장
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

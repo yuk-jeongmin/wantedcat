@@ -37,4 +37,27 @@ public class UserController {
         // 조회된 사용자 정보를 응답으로 보냅니다.
         return ResponseEntity.ok(userInfo);
     }
+
+    //마이페이지 
+    // 프로필 수정 (이름, 이메일, 프로필 이미지)
+    @PutMapping("/update")
+    public ResponseEntity<UserDto.UserResponse> updateMyInfo(
+            Authentication authentication,
+            @RequestBody UserDto.UpdateRequest requestDto) {
+
+        String userEmail = authentication.getName();
+        UserDto.UserResponse updatedUser = userService.updateUser(userEmail, requestDto);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<String> changePassword(
+            Authentication authentication,
+            @RequestBody UserDto.PasswordChangeRequest requestDto) {
+        
+        String userEmail = authentication.getName();
+        userService.changePassword(userEmail, requestDto);
+        return ResponseEntity.ok("비밀번호 변경 성공");
+    }
+
 }
