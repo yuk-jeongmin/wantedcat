@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Separator } from "./ui/separator";
 import { ArrowLeft, Clock, User, Edit, Trash2 } from "lucide-react";
+import { Badge } from "./ui/badge";
 
 // NoticeDetail 컴포넌트에 필요한 props 타입 정의
 interface NoticeDetailProps {
@@ -80,7 +81,10 @@ export function NoticeDetail({ notice, onBack, canEdit = false, canDelete = fals
           {/* 공지사항 상세 내용 카드 */}
           <Card>
             <CardHeader className="pb-4">
-              <h1 className="text-2xl font-bold mb-3">{notice.title}</h1>
+              <div className="flex-1">
+                <Badge variant="secondary" className="mb-3">{notice.category}</Badge>
+                <h1 className="text-2xl font-bold mb-3">{notice.title}</h1>
+              </div>
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <User className="w-4 h-4" />
