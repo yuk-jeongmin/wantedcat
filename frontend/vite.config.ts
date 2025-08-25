@@ -6,6 +6,7 @@ import tailwindcss from 'tailwindcss';
 export default defineConfig({
   plugins: [react()],
   resolve: {
+    
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '~': fileURLToPath(new URL('./src', import.meta.url)),
@@ -14,11 +15,11 @@ export default defineConfig({
   server: {
     port: 5174,
     host: true, // Gitpod 환경에서 서버 접속을 위해 필요
-    allowedHosts: ['5174-storyinstoryj-wantedcat-rjagzvfxvzc.ws-us121.gitpod.io'],
+    allowedHosts: ['*'],
     proxy: {
-            '/api': { target: 'https://8080-storyinstoryj-wantedcat-rjagzvfxvzc.ws-us121.gitpod.io', changeOrigin: true }
-      ,
-      // 추가-jks: FastAPI(collectionservice, 8000)
+            
+      '/api': { target: 'http://backspringboot:8080',
+        changeOrigin: true },
       '/collection': {
         target: 'http://collectionservice:8000',
         changeOrigin: true,
@@ -32,8 +33,20 @@ export default defineConfig({
         secure: false,
         rewrite: (path) => path.replace(/^\/ai/, ''), // '/ai' 제거
       },
+      '/app': {
+          target: 'http://backspringboot:8080',
+          changeOrigin: true,
+          secure: false,
+        },
+        
+       '/public': {
+          target: 'http://backspringboot:8080',
+          changeOrigin: true,
+          secure: false,
+        },
+         
       '/hls': {
-        target: 'https://8555-sjleecatthe-wantedcat-7dxfzhg0f8g.ws-us121.gitpod.io',   // MediaMTX HLS 원본(같은 호스트에서 8555)
+        target: 'http://streamingservice:8555',   // MediaMTX HLS 원본(같은 호스트에서 8555)
         changeOrigin: true,
         secure: false,
         rewrite: (path: string) => path.replace(/^\/hls/, ''), // /hls → /

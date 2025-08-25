@@ -51,7 +51,7 @@ export function CreateQuestionForm({ onClose, onSubmit, editingQuestion }: Creat
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title.trim() || !formData.content.trim() || !formData.author.trim()) {
+    if (!formData.title.trim() || !formData.content.trim()) {
       alert("모든 필수 항목을 입력해주세요.");
       return;
     }
@@ -101,17 +101,6 @@ export function CreateQuestionForm({ onClose, onSubmit, editingQuestion }: Creat
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="author">작성자 *</Label>
-              <Input
-                id="author"
-                placeholder="작성자명을 입력하세요"
-                value={formData.author}
-                onChange={(e) => setFormData(prev => ({ ...prev, author: e.target.value }))}
-                required
-              />
             </div>
 
             <div className="space-y-2">
