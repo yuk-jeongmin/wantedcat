@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: catchinchilla9477/bpfrontend:v12
+          image: jaekyung959/bjfrontend:v1
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5174

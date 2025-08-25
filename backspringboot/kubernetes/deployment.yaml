@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backspringboot
-          image: catchinchilla9477/bpbackend:v6
+          image: jaekyung959/bjbackspringboot:v2
           ports:
             - containerPort: 8080
           env:

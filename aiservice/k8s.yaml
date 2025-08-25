@@ -1,0 +1,113 @@
+# 1) 민감한 환경변수: .env -> Secret
+#   - 로컬에 있는 .env로 바로 만들려면: 
+#     kubectl create secret generic aiservice-env --from-env-file=.env -n default
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aiservice-env
+  namespace: default
+type: Opaque
+stringData:
+  AZURE_STORAGE_CONNECTION_STRING: ""
+  X_API_KEY: ""
+
+---
+# 2) PVC : /app에 마운트할 퍼시스턴트 볼륨 (필요 용량은 상황에 맞게 조정)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: aiservice-app-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 7Gi
+  # AKS 기본 StorageClass(예: managed-csi) 사용. 환경에 맞게 지정 가능.
+  storageClassName: managed-csi
+
+---
+# 3) Deployment: 컨테이너 /app 마운트 + Secret에서 env 주입
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aiservice
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aiservice
+  template:
+    metadata:
+      labels:
+        app: aiservice
+    spec:
+      containers:
+        - name: aiservice
+          # Gitpod에서 빌드한 이미지가 레지스트리에 푸시되어 있어야 합니다.
+          # 예) ghcr.io/your/repo:tag 또는 acr.azurecr.io/aiservice:latest
+          image: jaekyung959/bjaiservice:v1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8001
+          envFrom:
+            - secretRef:
+                name: aiservice-env
+          env:
+            # YOLO 경고를 피하려면, 쓰기 가능한 폴더로 설정
+            # - name: YOLO_CONFIG_DIR
+            #   value: /app/.ultralytics
+            # (옵션) 타임존/로케일이 필요하다면 추가
+            - name: TZ
+              value: "Asia/Seoul"
+            - name: DATA_DIR
+              value: /data # aiservice의 PVC 경로. (aiservice에 저장되는 파일들은 모두 여기에 저장됨)
+            - name: YOLO_CONFIG_DIR   # (권장) 쓰기 가능한 경로로 변경
+              value: /data/.ultralytics
+          volumeMounts:
+            - name: app-volume
+              mountPath: /data
+          # Gunicorn은 이미지의 CMD로 이미 설정되어 있으므로 command/args 생략
+          # readinessProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: 8001
+          #   initialDelaySeconds: 5
+          #   periodSeconds: 10
+          #   timeoutSeconds: 2
+          # livenessProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: 8001
+          #   initialDelaySeconds: 20
+          #   periodSeconds: 20
+          #   timeoutSeconds: 2
+          # resources:
+          #   requests:
+          #     cpu: "250m"
+          #     memory: "512Mi"
+          #   limits:
+          #     cpu: "1"
+          #     memory: "2Gi"
+      volumes:
+        - name: app-volume
+          persistentVolumeClaim:
+            claimName: aiservice-app-pvc
+
+---
+# 4) Service : ClusterIP Service: 같은 네임스페이스에서 http://aiservice:8001 로 접근 가능
+apiVersion: v1
+kind: Service
+metadata:
+  name: aiservice
+  namespace: default
+spec:
+  selector:
+    app: aiservice
+  ports:
+    - name: http
+      port: 8001       # Service 포트
+      targetPort: 8001 # 컨테이너 포트
+  type: ClusterIP # LoadBalancer | ClusterIP
