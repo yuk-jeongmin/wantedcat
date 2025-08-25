@@ -115,6 +115,21 @@ const formatTime = (timestamp: string) => {
     }
   };
 
+// 추가-jks : 경로(path) 내의 %2F만 / 로 치환 (쿼리는 보존)
+const replaceEncodedSlashInPath = (input: string): string => {
+  try {
+    const u = new URL(input);
+    u.pathname = u.pathname.replace(/%2F/gi, "/");
+    return u.toString();
+  } catch {
+    // URL 파싱 실패 시 최소 안전치환(쿼리 전까지만)
+    const qIndex = input.indexOf("?");
+    const path = qIndex >= 0 ? input.slice(0, qIndex) : input;
+    const query = qIndex >= 0 ? input.slice(qIndex) : "";
+    return path.replace(/%2F/gi, "/") + query;
+  }
+};
+
 const handleActivityClick = async (activity: EventData) => {
   setSelectedActivity(activity);
   setIsOriginPlaying(false);
@@ -128,7 +143,12 @@ const handleActivityClick = async (activity: EventData) => {
       axios.post('/api/events/video/sas', { videoUrl: activity.bboxVideoUrl  }),
     ]);
     setModalOriginUrl(originRes?.data?.videoUrl ?? '');
-    setModalBboxUrl(bboxRes?.data?.videoUrl ?? '');
+    // 추가-jks : %2F를 '/'로 바꾸기
+    const rawBboxUrl = bboxRes?.data?.videoUrl ?? '';
+    const safeBboxUrl = replaceEncodedSlashInPath(rawBboxUrl);
+    setModalBboxUrl(safeBboxUrl);
+    console.log('bbox origin url :',rawBboxUrl);
+    console.log('bbox replaced url :',safeBboxUrl);
   } catch (e) {
     console.error(e);
     alert('비디오 URL을 불러오지 못했습니다.');

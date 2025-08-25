@@ -46,7 +46,9 @@ def ensure_yolo2_loaded(userid):
                 print(f"{userid}의 YOLO2 준비 완료")
 
 app = Flask(__name__)
-BASE_URL = app.root_path
+# BASE_URL = app.root_path # 기존
+BASE_URL = os.getenv("DATA_DIR",app.root_path) # 변경-jks : Azure PVC 용
+                                               # 기본은 app.root_path, 배포환경은 /data (pvc의 /data)
 X_API_KEY = os.getenv("X_API_KEY")
 YOLO0_BEST_MODEL = None
 YOLO2_BEST_MODEL = None
@@ -198,6 +200,7 @@ def prepare_yolo_model():
     result = GridSearch_YOLO(epochs=[1], # cpu 8코어 테스트용 (실전: 35)
                              lr0s=[0.00725],
                              models=['yolo11s'],
+                             font_base_dir=BASE_URL,
                              base_dir=os.path.join(BASE_URL, 'tmp'), 
                              dataset_name=f"datasets/{user_id}", 
                              train_output_name=f'yolo2_train/{user_id}') 
