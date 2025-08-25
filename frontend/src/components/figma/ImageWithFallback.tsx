@@ -1,33 +1,57 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
 const ERROR_IMG_SRC =
-  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODgiIGhlaWdodD0iODg...iAzMiIvPjxjaXJjbGUgY3g9IjUzIiBjeT0iMzUiIHI9IjciLz48L3N2Zz4KCg=='
+  "data:image/svg+xml;utf8," +
+  "<svg xmlns='http://www.w3.org/2000/svg' width='96' height='64' viewBox='0 0 96 64'>" +
+  "<rect width='96' height='64' fill='%23eee'/>" +
+  "<text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='12' fill='%23999'>no image</text>" +
+  "</svg>"
 
-type Props = React.ImgHTMLAttributes<HTMLImageElement> & {
-  /** 로딩 실패 시 표시할 대체 이미지 경로(옵션) */
-  fallbackSrc?: string
+type Props = React.ImgHTMLAttributes<HTMLImageElement> & { fallbackSrc?: string }
+
+const PUBLIC_BASE = (import.meta.env.VITE_PUBLIC_BASE_URL || '').replace(/\/$/, '')
+const INTERNAL_HOSTS = new Set(['backspringboot','collectionservice','localhost'])
+
+function toPublicUrl(input?: string): string {
+  if (!input) return ''
+  if (/^(data|blob):/i.test(input)) return input
+
+  if (/^https?:\/\//i.test(input)) {
+    try {
+      const u = new URL(input)
+      let path = u.pathname.replace(/^\/app\//, '/')
+      if (!path.startsWith('/')) path = `/${path}`
+      if (INTERNAL_HOSTS.has(u.hostname)) {
+        return PUBLIC_BASE ? `${PUBLIC_BASE}${path}${u.search}${u.hash}` : `${path}${u.search}${u.hash}`
+      }
+      return `${u.origin}${path}${u.search}${u.hash}`
+    } catch { /* ignore and fall through */ }
+  }
+
+  let path = input.replace(/^\/app\//, '/')
+  if (!path.startsWith('/')) path = `/${path}`
+  return PUBLIC_BASE ? `${PUBLIC_BASE}${path}` : path
 }
 
-const API_BASE = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
-const toPublicUrl = (p?: string) => {
-  if (!p) return "";
-  // 이미 절대 URL이면 그대로
-  if (/^https?:\/\//i.test(p)) return p;
-  // '/app/public/... → /public/...'
-  const path = p.startsWith("/app/") ? p.replace("/app", "") : p;
-  // API_BASE가 비어있으면 그대로 '/public/..'로 반환 → Vite가 가로채므로 반드시 API_BASE 세팅 필요
-  console.log("CatImagePath",`${API_BASE}${path}`)
-  return `${API_BASE}${path}`;
-};
-
 export function ImageWithFallback(props: Props) {
+  const { src, alt = '', className = '', style, fallbackSrc, ...rest } = props
   const [didError, setDidError] = useState(false)
-  const { src, alt, style, className, fallbackSrc, ...rest } = props
-  console.log("test:",src,alt,style,className,fallbackSrc)
-  const handleError = () => setDidError(true)
+  const [usedFallback, setUsedFallback] = useState(false)
 
-  // src가 없거나 로딩 실패 -> fallbackSrc(있으면) 또는 기본 에러 SVG
-  const actualSrc = (!didError && src) ? src : (toPublicUrl(src) ?? ERROR_IMG_SRC)
+  const normalizedSrc = useMemo(() => toPublicUrl(src), [src])
+  const normalizedFallback = useMemo(
+    () => (fallbackSrc ? toPublicUrl(fallbackSrc) : ERROR_IMG_SRC),
+    [fallbackSrc]
+  )
+
+  const actualSrc = didError
+    ? (usedFallback ? ERROR_IMG_SRC : normalizedFallback)
+    : (normalizedSrc || normalizedFallback)
+
+  const handleError = () => {
+    if (!didError) setDidError(true)
+    else if (!usedFallback) setUsedFallback(true)
+  }
 
   return (
     <img
@@ -36,8 +60,10 @@ export function ImageWithFallback(props: Props) {
       className={className}
       style={style}
       onError={handleError}
-      {...rest}
+      loading="lazy"
       data-original-url={src}
+      data-normalized-url={normalizedSrc}
+      {...rest}
     />
   )
 }

@@ -54,7 +54,7 @@ export function CreatePostForm({ onClose, onSubmit, editingPost }: CreatePostFor
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title.trim() || !formData.content.trim() || !formData.author.trim() || !formData.category) {
+    if (!formData.title.trim() || !formData.content.trim() || !formData.category) {
       alert("모든 필드를 입력해주세요.");
       return;
     }
@@ -76,15 +76,6 @@ export function CreatePostForm({ onClose, onSubmit, editingPost }: CreatePostFor
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="author">작성자</Label>
-                <Input
-                  id="author"
-                  placeholder="작성자명을 입력하세요"
-                  value={formData.author}
-                  onChange={(e) => setFormData(prev => ({ ...prev, author: e.target.value }))}
-                />
-              </div>
               
               <div className="space-y-2">
                 <Label htmlFor="category">카테고리</Label>

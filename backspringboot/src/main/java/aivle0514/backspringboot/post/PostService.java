@@ -12,52 +12,58 @@ public class PostService {
 
     private final PostRepository postRepository;
 
-    public Page<Post> list(int page, int size, String category, String q) {
+    public Page<PostDto.Response> listAsDto(int page, int size, String category, String q) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        if (q != null && !q.isBlank()) return postRepository.findAllByTitleContainingOrContentContaining(q, q, pageable);
-        if (category != null && !category.isBlank()) return postRepository.findAllByCategoryOrderByCreatedAtDesc(category, pageable);
-        return postRepository.findAll(pageable);
+        Page<Post> posts;
+        if (q != null && !q.isBlank()) {
+            posts = postRepository.findAllByTitleContainingOrContentContaining(q, q, pageable);
+        } else if (category != null && !category.isBlank()) {
+            posts = postRepository.findAllByCategoryOrderByCreatedAtDesc(category, pageable);
+        } else {
+            posts = postRepository.findAll(pageable);
+        }
+        // ⚠️ 이 map은 여전히 트랜잭션(readOnly) 안에서 수행됨 → LAZY 안전
+        return posts.map(PostDto.Response::from);
     }
 
-    public Post get(Long id) {
-        return postRepository.findById(id).orElseThrow();
+    public PostDto.Response getAsDto(Long id) {
+        Post p = postRepository.findById(id).orElseThrow();
+        return PostDto.Response.from(p);
+    }
+
+    @Transactional
+    public PostDto.Response createAsDto(PostDto.CreateRequest req) {
+        Post p = new Post();
+        p.setTitle(req.getTitle());
+        p.setContent(req.getContent());
+        p.setAuthor(req.getAuthor());
+        p.setCategory(req.getCategory());
+        p.setViews(0);
+        p.setLikes(0);
+        Post saved = postRepository.save(p);
+        return PostDto.Response.from(saved);
+    }
+
+    @Transactional
+    public PostDto.Response updateAsDto(Long id, PostDto.UpdateRequest req) {
+        Post p = postRepository.findByIdAndAuthor(id, req.getAuthor()).orElseThrow();
+        if (req.getTitle() != null) p.setTitle(req.getTitle());
+        if (req.getContent() != null) p.setContent(req.getContent());
+        if (req.getCategory() != null) p.setCategory(req.getCategory());
+        return PostDto.Response.from(p);
+    }
+
+    @Transactional
+    public void delete(Long id, String author, String userRole) {
+        Post p = "admin".equals(userRole)
+                ? postRepository.findById(id).orElseThrow()
+                : postRepository.findByIdAndAuthor(id, author).orElseThrow();
+        postRepository.delete(p);
     }
 
     @Transactional
     public void increaseViewCount(Long id) {
         Post p = postRepository.findById(id).orElseThrow();
         p.setViews(p.getViews() + 1);
-    }
-
-    @Transactional
-    public Post create(String title, String content, String author, String category) {
-        Post p = new Post();
-        p.setTitle(title);
-        p.setContent(content);
-        p.setAuthor(author);
-        p.setCategory(category);
-        p.setViews(0);
-        p.setLikes(0);
-        return postRepository.save(p);
-    }
-
-    @Transactional
-    public Post update(Long id, String author, String title, String content, String category) {
-        Post p = postRepository.findByIdAndAuthor(id, author).orElseThrow(); // 작성자 검증
-        if (title   != null) p.setTitle(title);
-        if (content != null) p.setContent(content);
-        if (category!= null) p.setCategory(category);
-        return p;
-    }
-
-    @Transactional
-    public void delete(Long id, String author, String userRole) {
-        Post p;
-        if ("admin".equals(userRole)) {
-            p = postRepository.findById(id).orElseThrow();
-        } else {
-            p = postRepository.findByIdAndAuthor(id, author).orElseThrow();
-        }
-        postRepository.delete(p);
     }
 }

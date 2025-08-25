@@ -405,17 +405,37 @@ export default function App() {
   // const [isAuthenticated, setIsAuthenticated] = useState(true);
   // const [currentUser, setCurrentUser] = useState<UserData | null>(mockUsers[1]);
   const [authPage, setAuthPage] = useState<AuthPage>("login");
-  const [currentMenu, setCurrentMenu] = useState<MenuType>("dashboard");
-  const [currentManagement, setCurrentManagement] = useState<ManagementType>("cats");
-  const [currentBoard, setCurrentBoard] = useState<BoardType>("info");
+  const getInitialState = <T,>(key: string, defaultValue: T): T => {
+    const savedState = localStorage.getItem(key);
+    try {
+      return savedState ? JSON.parse(savedState) : defaultValue;
+    } catch (e) {
+      console.error(`Error parsing localStorage key "${key}":`, e);
+      return defaultValue;
+    }
+  };
+ 
+  const [currentMenu, setCurrentMenu] = useState<MenuType>(getInitialState("currentMenu", "dashboard"));
+  const [currentManagement, setCurrentManagement] = useState<ManagementType>(getInitialState("currentManagement", "cats"));
+  const [currentBoard, setCurrentBoard] = useState<BoardType>(getInitialState("currentBoard", "info"));
+  const [isManagementMenuOpen, setIsManagementMenuOpen] = useState<boolean>(getInitialState("isManagementMenuOpen", true));
+  const [isBoardMenuOpen, setIsBoardMenuOpen] = useState<boolean>(getInitialState("isBoardMenuOpen", true));
+ 
+  // 상태가 변경될 때 로컬 스토리지에 저장
+  useEffect(() => {
+    localStorage.setItem("currentMenu", JSON.stringify(currentMenu));
+    localStorage.setItem("currentManagement", JSON.stringify(currentManagement));
+    localStorage.setItem("currentBoard", JSON.stringify(currentBoard));
+    localStorage.setItem("isManagementMenuOpen", JSON.stringify(isManagementMenuOpen));
+    localStorage.setItem("isBoardMenuOpen", JSON.stringify(isBoardMenuOpen));
+  }, [currentMenu, currentManagement, currentBoard, isManagementMenuOpen, isBoardMenuOpen]);
+ 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"card" | "table">("table");
   const [sortBy, setSortBy] = useState<string>("latest");
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [isBoardMenuOpen, setIsBoardMenuOpen] = useState(true);
-  const [isManagementMenuOpen, setIsManagementMenuOpen] = useState(true);
   const [cats, setCats] = useState<Cat[]>([]);
   const [showAddCatForm, setShowAddCatForm] = useState(false);
   const [editingCat, setEditingCat] = useState<Cat | null>(null);
@@ -435,6 +455,24 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString("en-CA"));
   const [comments, setComments] = useState<Comment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await axios.get(`/api/user/me`, { withCredentials: true });
+        if (response.status === 200 && response.data) {
+          setCurrentUser(response.data);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.log("User not authenticated");
+      } finally {
+        setIsLoading(false); // 인증 확인 후 로딩 종료
+      }
+    };
+    checkAuthStatus();
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -724,14 +762,18 @@ const handleLoginAttempt = async (email: string, password: string): Promise<bool
     }
   };
 
-
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    delete axios.defaults.headers.common['Authorization'];
+  const handleLogout = async () => {
+    try{
+      await axios.post(`/api/user/logout`, {}, { withCredentials: true });
+    } catch (error) { 
+        console.error("Logout failed:", error); 
+        } finally {  
     setCurrentUser(null);
     setIsAuthenticated(false);
     setCurrentMenu("dashboard");
+      }
   };
+ 
 
   //마이페이지
   const handleUserUpdate = (updatedUser: UserData) => {

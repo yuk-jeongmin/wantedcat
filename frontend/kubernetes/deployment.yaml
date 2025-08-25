@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: catchinchilla9477/bpfrontend:v12
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5174
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: frontend-secret
+                  key: DB_PASSWORD
+            - name: APP_UPLOAD_DIR
+              value: /opt/app/uploads
+          volumeMounts:
+                - name: uploads
+                  mountPath: /opt/app/uploads
+      volumes:
+            - name: uploads
+              persistentVolumeClaim:
+                claimName: frontend-pvc

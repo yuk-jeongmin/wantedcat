@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backspringboot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backspringboot
+  template:
+    metadata:
+      labels:
+        app: backspringboot
+    spec:
+      containers:
+        - name: backspringboot
+          image: catchinchilla9477/bpbackend:v6
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backspringboot-secret
+                  key: DB_PASSWORD
+
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/my_app_db?useSSL=false&characterEncoding=UTF-8&serverTimezone=Asia/Seoul"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backspringboot-secret
+                  key: DB_PASSWORD

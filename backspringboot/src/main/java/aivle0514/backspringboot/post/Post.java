@@ -41,8 +41,9 @@ public class Post {
     @Builder.Default
     private int likes = 0;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<PostComment> postComments;
+    @OneToMany(mappedBy="post", fetch=FetchType.LAZY)
+  @com.fasterxml.jackson.annotation.JsonIgnore
+  private List<PostComment> postComments;
 
     @PrePersist
     void onCreate() {

@@ -37,17 +37,14 @@ interface CatManagementProps {
 }
 
 // 추가-jks : 고양이 프로필 사진 유틸 함수(경로 필터링)
-const API_BASE = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+const PUBLIC_BASE = (import.meta.env.VITE_PUBLIC_BASE_URL || '').replace(/\/$/, '')
 const toPublicUrl = (p?: string) => {
-  if (!p) return "";
-  // 이미 절대 URL이면 그대로
-  if (/^https?:\/\//i.test(p)) return p;
-  // '/app/public/... → /public/...'
-  const path = p.startsWith("/app/") ? p.replace("/app", "") : p;
-  // API_BASE가 비어있으면 그대로 '/public/..'로 반환 → Vite가 가로채므로 반드시 API_BASE 세팅 필요
-  console.log("CatImagePath",`${API_BASE}${path}`)
-  return `${API_BASE}${path}`;
-};
+  if (!p) return ''
+  if (/^(https?|data|blob):/i.test(p)) return p
+  let path = p.startsWith('/app/') ? p.replace(/^\/app\//, '/') : p
+  if (!path.startsWith('/')) path = `/${path}`
+  return PUBLIC_BASE ? `${PUBLIC_BASE}${path}` : path
+}
 
 // 추가-jks : x-api-key
 const API_KEY_HEADER = import.meta.env.VITE_X_API_KEY;
