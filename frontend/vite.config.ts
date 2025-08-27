@@ -15,7 +15,7 @@ export default defineConfig({
   server: {
     port: 5174,
     host: true, // Gitpod 환경에서 서버 접속을 위해 필요
-    allowedHosts: ['*'],
+    allowedHosts: ['app.4.230.152.143.nip.io'], // allowedHosts: ['*'],
     proxy: {
             
       '/api': { target: 'http://backspringboot:8080',

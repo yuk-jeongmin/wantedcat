@@ -45,8 +45,13 @@ export function DashboardNotices({ streamKey, userEmail, date }: DashboardNotice
   const today = new Date();
 const videoRef = useRef<HTMLVideoElement>(null);
 // const streamKey = sessionStorage.getItem('streamKey');
-const streamUrl = `/hls/live/${streamKey}/index.m3u8`;
-//'https://5c0f21d5c1bd.ngrok-free.app/live/12aed4be-ef30-4896-875e-5fa59685645f/index.m3u8';
+// const streamUrl = `/hls/live/${streamKey}/index.m3u8`;
+// //'https://5c0f21d5c1bd.ngrok-free.app/live/12aed4be-ef30-4896-875e-5fa59685645f/index.m3u8';
+const isDev = import.meta.env.Dev;
+const STREAM_ORIGIN =
+  import.meta.env.VITE_STREAM_ORIGIN || (isDev ? '/hls' : `${location.protocol}//${location.hostname}:8555`);
+// const streamUrl = `${STREAM_ORIGIN}/live/${streamKey}/index.m3u8`;
+const streamUrl = `${STREAM_ORIGIN}/hls/live/${streamKey}/index.m3u8`;
 
 useEffect(() => {
     let hls: Hls | null = null;
