@@ -1,0 +1,23 @@
+# mediamtx-configmap.yml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mediamtx-config
+data:
+  mediamtx.yml: |
+    rtmp: true
+    rtmpAddress: ":1935"
+
+    hls: true
+    hlsAddress: ":8555"
+    hlsAllowOrigin: "*"
+
+    rtsp: true
+    rtspAddress: ":8554"
+
+    webrtc: true
+    webrtcAddress: ":8556"
+
+    paths:
+      all:
+        source: publisher
