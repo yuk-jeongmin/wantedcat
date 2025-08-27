@@ -1387,7 +1387,8 @@ const handleEditClick = (item: any) => {
           userId={currentUser?.id ?? currentUser?.email} // 추가-jks : 백엔드에서 사용할 식별자
         />
       )}
-      {showAddDeviceForm && (<AddDeviceForm onClose={() => { setShowAddDeviceForm(false); setEditingDevice(null); }} onSubmit={editingDevice ? handleUpdateDevice : handleAddDevice} editingDevice={editingDevice} streamKey={currentUser?.streamKey}/>)}
+      {showAddDeviceForm && (<AddDeviceForm onClose={() => { setShowAddDeviceForm(false); setEditingDevice(null); }} 
+                    onSubmit={editingDevice ? handleUpdateDevice : handleAddDevice} editingDevice={editingDevice} streamKey={currentUser?.streamKey} user_email={currentUser?.email}/>)}
       
       {/* --- 상세 보기 모달 --- */}
       {selectedPost && (

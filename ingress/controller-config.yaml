@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+data:
+  add-headers: "ingress-nginx/custom-headers"
+  strict-validate-path-type: "false"   # ← 추가

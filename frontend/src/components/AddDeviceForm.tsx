@@ -30,6 +30,7 @@ interface AddDeviceFormProps {
   onSubmit: (deviceData: Omit<Device, 'id' | 'lastConnected'>) => void;
   editingDevice?: Device | null;
   streamKey?: string | null;
+  user_email?: string | null;
 }
 
 const deviceTypes = [
@@ -37,7 +38,10 @@ const deviceTypes = [
   { value: 'sensor', label: '센서', icon: Activity },
 ];
 
-export function AddDeviceForm({ onClose, onSubmit, editingDevice, streamKey }: AddDeviceFormProps) {
+const WIFI_SERVICE_UUID = 'e5f00001-3a12-4a9b-9f65-1d2c3b4a5f60'; // 예시: 커스텀 서비스
+const WIFI_CHARACTERISTIC_UUID = 'e5f00002-3a12-4a9b-9f65-1d2c3b4a5f60'; // 예시: 커스텀 특성
+
+export function AddDeviceForm({ onClose, onSubmit, editingDevice, streamKey, user_email }: AddDeviceFormProps) {
   // --- 상태 관리 (State Management) ---
 
   const [formData, setFormData] = useState({
@@ -88,7 +92,10 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice, streamKey }: A
     setActiveBleDevice(null);
 
     try {
-      const nativeDevice = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
+      const nativeDevice = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: [WIFI_SERVICE_UUID]
+        });
       setActiveBleDevice(nativeDevice);
 
       const deviceForUi: CustomBluetoothDevice = {
@@ -137,8 +144,6 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice, streamKey }: A
   const handleSendWifiCredentials = async () => {
     // [중요] 이 UUID들은 실제 블루투스 장치에 설정된 값으로 반드시 교체해야 합니다.
     // 펌웨어 개발자에게 문의하여 정확한 값을 받으세요.
-    const WIFI_SERVICE_UUID = '0000aaaa-0000-1000-8000-00805f9b34fb'; // 예시: 커스텀 서비스
-    const WIFI_CHARACTERISTIC_UUID = '0000bbbb-0000-1000-8000-00805f9b34fb'; // 예시: 커스텀 특성
 
     // 1. 블루투스 연결 상태 확인
     if (!activeBleDevice || !activeBleDevice.gatt?.connected) {
@@ -147,15 +152,10 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice, streamKey }: A
     }
 
     // 2. 전송할 데이터 준비
-    const { wifiName, wifiPassword } = formData;
-    const streamKey = sessionStorage.getItem('streamKey'); // 세션 스토리지에서 streamkey 가져오기
+    const { wifiName, wifiPassword, homecamIp } = formData;
 
     if (!wifiName || !wifiPassword) {
       alert('WiFi 이름과 비밀번호를 모두 입력해주세요.');
-      return;
-    }
-    if (!streamKey) {
-      alert('세션에서 스트림 키를 찾을 수 없습니다. 먼저 스트림 키를 생성하거나 받아와주세요.');
       return;
     }
 
@@ -168,6 +168,8 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice, streamKey }: A
         ssid: wifiName,
         password: wifiPassword,
         key: streamKey,
+        user_email:user_email,
+        homecamIp:homecamIp
       };
       const jsonString = JSON.stringify(dataToSend);
       const value = new TextEncoder().encode(jsonString);
@@ -297,7 +299,7 @@ export function AddDeviceForm({ onClose, onSubmit, editingDevice, streamKey }: A
                               ) : device.connected ? (
                                 <Badge className="bg-green-600">연결됨</Badge>
                               ) : (
-                                <Badge variant="outline">연결 가능</Badge>
+                                <Badge variant="outline">페어링 검사</Badge>
                               )}
                             </div>
                           </div>
