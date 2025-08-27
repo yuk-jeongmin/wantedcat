@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: jaekyung959/bpjfrontend:v5
+          image: jaekyung959/bjfrontend:v6
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5174
