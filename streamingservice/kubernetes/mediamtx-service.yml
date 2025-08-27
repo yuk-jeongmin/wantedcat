@@ -1,0 +1,26 @@
+# mediamtx-service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: mediamtx-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: mediamtx
+  ports:
+  - name: rtmp
+    protocol: TCP
+    port: 1935
+    targetPort: 1935
+  - name: hls
+    protocol: TCP
+    port: 8555
+    targetPort: 8555
+  - name: rtsp
+    protocol: TCP
+    port: 8554
+    targetPort: 8554
+  - name: webrtc
+    protocol: TCP
+    port: 8556
+    targetPort: 8556
