@@ -1,0 +1,19 @@
+# 라즈베리파이 부팅시 자동으로 프로그램 실행되게 설정
+# /etc/systemd/system/ble-server.service 가 되도록 파일 옮기기
+
+[Unit]
+Description=BLE server for catbab 
+After=bluetooth.target network-online.target
+
+[Service]
+Type=simple
+User=lee
+WorkingDirectory=/home/lee/바탕화면
+ExecStart=/usr/bin/node /home/lee/바탕화면/ble-server.js
+Restart=on-failure
+AmbientCapabilities=CAP_NET_RAW
+CapabilityBoundingSet=CAP_NET_RAW
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
